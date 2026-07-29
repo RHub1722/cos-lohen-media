@@ -130,6 +130,11 @@ class OutputConfig:
     # буквальная нормализация до target_lufs подняла бы фон зала на +20 dB и
     # больше. Приросты выше этого значения обрезаются с предупреждением.
     max_normalize_gain_db: float = 14.0
+    # Суффикс имён результатов по умолчанию для этого сценария: "v2" даёт
+    # master_v2.wav. Смысл в том, чтобы каждый сценарий объявлял свои имена сам
+    # и запуск без аргументов не затирал результаты другого сценария.
+    # Аргумент --output-suffix перебивает это значение.
+    default_suffix: str = ""
     # true — не давать loudnorm уходить в динамический режим.
     #
     # loudnorm применяет один постоянный коэффициент (linear) только пока
@@ -448,6 +453,7 @@ def load_timeline(path: Path, project_root: Path) -> Timeline:
         target_lra=float(out_raw.get("target_lra", 11.0)),
         true_peak_margin_db=float(out_raw.get("true_peak_margin_db", 0.3)),
         max_normalize_gain_db=float(out_raw.get("max_normalize_gain_db", 14.0)),
+        default_suffix=str(out_raw.get("default_suffix", "")).strip(),
         preserve_dynamics=bool(out_raw.get("preserve_dynamics", False)),
     )
     output.pcm_codec  # ранняя проверка bit_depth

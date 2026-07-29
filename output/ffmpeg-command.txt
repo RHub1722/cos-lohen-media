@@ -54,7 +54,7 @@ ffmpeg -hide_banner -nostdin -y -i output/ambience.wav -i output/voices.wav -i o
 ffmpeg -hide_banner -nostdin -i output/_premaster.wav -af loudnorm=I=-16.0:TP=-1.5:LRA=11.0:print_format=json -f null -
 
 ## [18] master
-ffmpeg -hide_banner -nostdin -y -i output/_premaster.wav -af loudnorm=I=-18.590000:TP=-1.800000:LRA=28.300000:measured_I=-31.890000:measured_LRA=26.300000:measured_TP=-15.600000:measured_thresh=-49.960000:offset=0.530000:linear=true:print_format=json,aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,alimiter=limit=0.812831:level=disabled -t 103.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/master.wav
+ffmpeg -hide_banner -nostdin -y -i output/_premaster.wav -af loudnorm=I=-18.690000:TP=-1.800000:LRA=28.200000:measured_I=-31.950000:measured_LRA=26.200000:measured_TP=-15.560000:measured_thresh=-50.250000:offset=0.780000:linear=true:print_format=json,aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,alimiter=limit=0.812831:level=disabled -t 103.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/master.wav
 
 ## [19] loudnorm:verify
 ffmpeg -hide_banner -nostdin -i output/master.wav -af loudnorm=I=-16.0:TP=-1.5:LRA=11.0:print_format=json -f null -

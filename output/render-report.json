@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T21:07:50Z",
+  "generated_at": "2026-07-29T21:22:39Z",
   "project_root": "audio-project",
   "environment": {
     "python": "3.12.10",
@@ -7,7 +7,7 @@
     "ffmpeg": "ffmpeg version 8.1.1-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
   },
   "scenario": {
-    "file": "scenario/timeline.v1.backup.json",
+    "file": "scenario/backups/timeline-v1.json",
     "total_duration_seconds": 103.0,
     "total_duration_timecode": "01:43.000",
     "stems": [
@@ -46,24 +46,24 @@
   "loudness": {
     "normalization_applied": true,
     "target_lufs": -16.0,
-    "effective_target_lufs": -18.59,
-    "requested_gain_db": 15.89,
-    "applied_gain_db": 13.3,
+    "effective_target_lufs": -18.69,
+    "requested_gain_db": 15.95,
+    "applied_gain_db": 13.26,
     "gain_capped": true,
     "cap_reason": "preserve_dynamics",
     "normalization_type": "linear",
-    "max_linear_gain_db": 13.3,
+    "max_linear_gain_db": 13.26,
     "measured_before": {
-      "integrated_lufs": -31.89,
-      "true_peak_db": -15.6,
-      "lra_lu": 26.3,
-      "threshold_lufs": -49.96
+      "integrated_lufs": -31.95,
+      "true_peak_db": -15.56,
+      "lra_lu": 26.2,
+      "threshold_lufs": -50.25
     },
     "measured_after": {
-      "integrated_lufs": -18.65,
+      "integrated_lufs": -18.69,
       "true_peak_db": -2.3,
-      "lra_lu": 26.3,
-      "threshold_lufs": -37.09
+      "lra_lu": 26.2,
+      "threshold_lufs": -37.13
     }
   },
   "ducking": {
@@ -162,11 +162,11 @@
       "duck_group": "crowd",
       "ducks": null,
       "level": {
-        "source_peak_dbfs": -26.35,
+        "source_peak_dbfs": -19.81,
         "normalize_source": false,
         "source_compensation_db": 0.0,
         "max_envelope_db": -25.0,
-        "expected_peak_dbfs": -51.35
+        "expected_peak_dbfs": -44.81
       },
       "envelope_db": [
         {
@@ -555,7 +555,7 @@
     "lohen_reveal (voices): пропущено — файл не найден [assets/voices/lohen_reveal.wav]",
     "lohen_final_question (voices): пропущено — файл не найден [assets/voices/lohen_final_question.wav]",
     "lohen_final_line (voices): пропущено — файл не найден [assets/voices/lohen_final_line.wav]",
-    "preserve_dynamics=true: чтобы loudnorm остался линейным, прирост ограничен 13.3 dB (crest микса 16.3 dB) → фактическая громкость около -18.6 LUFS вместо -16.0 LUFS. Уровни сценария при этом сохраняются точно."
+    "preserve_dynamics=true: чтобы loudnorm остался линейным, прирост ограничен 13.3 dB (crest микса 16.4 dB) → фактическая громкость около -18.7 LUFS вместо -16.0 LUFS. Уровни сценария при этом сохраняются точно."
   ],
   "ffmpeg_command_count": 20
 }

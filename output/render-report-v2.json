@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T21:07:08Z",
+  "generated_at": "2026-07-29T21:25:39Z",
   "project_root": "audio-project",
   "environment": {
     "python": "3.12.10",
@@ -57,7 +57,7 @@
       "integrated_lufs": -26.9,
       "true_peak_db": -10.83,
       "lra_lu": 18.6,
-      "threshold_lufs": -42.87
+      "threshold_lufs": -43.21
     },
     "measured_after": {
       "integrated_lufs": -18.37,
@@ -219,11 +219,11 @@
       "duck_group": "crowd",
       "ducks": null,
       "level": {
-        "source_peak_dbfs": -26.35,
+        "source_peak_dbfs": -19.81,
         "normalize_source": false,
         "source_compensation_db": 0.0,
         "max_envelope_db": -25.0,
-        "expected_peak_dbfs": -51.35
+        "expected_peak_dbfs": -44.81
       },
       "envelope_db": [
         {

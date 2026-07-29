@@ -104,11 +104,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--output-suffix",
-        default="",
+        default=None,
         metavar="SUFFIX",
-        help="приписать суффикс к именам результатов: например --output-suffix v2 "
-        "даст master_v2.wav, ambience_v2.wav, render-report-v2.json. Без него "
-        "имена остаются прежними, и старая сборка не перезаписывается",
+        help="суффикс имён результатов: --output-suffix v2 даёт master_v2.wav, "
+        "ambience_v2.wav, render-report-v2.json. Если не указан, берётся "
+        "output.default_suffix из сценария. Чтобы принудительно собрать без "
+        "суффикса, передайте пустую строку: --output-suffix \"\"",
     )
     parser.add_argument(
         "--mp3",
@@ -390,7 +391,14 @@ def main(argv: list[str] | None = None) -> int:
         timeline=timeline,
         project_root=PROJECT_ROOT,
         verbose=args.verbose,
-        suffix=args.output_suffix.strip(),
+        # Аргумент командной строки перебивает значение из сценария; пустая
+        # строка в аргументе — это осознанный выбор «без суффикса», поэтому
+        # различаем «не передан» (None) и «передан пустым».
+        suffix=(
+            args.output_suffix.strip()
+            if args.output_suffix is not None
+            else timeline.output.default_suffix
+        ),
         make_mp3=args.mp3,
     )
     ctx.probes.update(validation.probes)

@@ -14,6 +14,8 @@
     "sample_rate": 48000,
     "channels": 2,
     "bit_depth": 24,
+    "default_suffix": "v2",
+    "default_suffix_note": "Этот сценарий содержит боевую сцену, поэтому его результаты называются master_v2.wav и т.д. Резервная копия scenario/backups/timeline-v1.json поля не имеет и собирается в master.wav — так два сценария не затирают друг друга.",
     "target_lufs": -16.0,
     "target_true_peak": -1.5,
     "true_peak_margin_db": 0.3,
