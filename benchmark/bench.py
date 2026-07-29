@@ -370,7 +370,14 @@ def cmd_volume_envelope() -> list[str]:
 
 
 def cmd_mix_amix() -> list[str]:
-    """Микс 8 копий короткого файла с задержкой и огибающей — как рендер стема."""
+    """Микс 8 копий короткого файла с задержкой и огибающей — как рендер стема.
+
+    Форма графа повторяет ``build_stem_command`` из src/renderer.py: внутри
+    события только adelay, без добивки тишиной, а длина выравнивается ровно
+    один раз уже на готовом миксе. Это существенно — прежняя форма с
+    ``apad``/``atrim`` внутри каждого события ломала микс при большом числе
+    входов в amix, и её убрали.
+    """
     total = SHORT_DURATION + MIX_INPUTS * 0.4
     argv = ["ffmpeg", "-hide_banner", "-nostdin", "-y"]
     for _ in range(MIX_INPUTS):
@@ -383,14 +390,12 @@ def cmd_mix_amix() -> list[str]:
             f"[{i}:a]{AFORMAT},asetpts=PTS-STARTPTS,"
             f"asetnsamples=n={ENVELOPE_FRAME_SAMPLES}:p=0,"
             f"volume='{ENVELOPE_EXPR}':eval=frame,"
-            f"adelay={delay}:all=1,"
-            f"apad=whole_dur={total:.6f},atrim=duration={total:.6f},"
-            f"asetpts=PTS-STARTPTS[e{i}]"
+            f"adelay={delay}:all=1[e{i}]"
         )
     joined = "".join(f"[e{i}]" for i in range(MIX_INPUTS))
     parts.append(
         f"{joined}amix=inputs={MIX_INPUTS}:normalize=0:dropout_transition=0,"
-        f"{AFORMAT}[out]"
+        f"{AFORMAT},apad=whole_dur={total:.6f},atrim=duration={total:.6f}[out]"
     )
 
     argv.extend(
