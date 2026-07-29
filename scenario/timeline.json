@@ -1,0 +1,233 @@
+{
+  "version": 1,
+  "title": "Аукцион — первый черновик",
+  "total_duration": 103.0,
+
+  "notes": {
+    "combat_window": "00:57.000-01:20.000 зарезервировано под будущую боевую сцену. Фон зала и толпы продолжает звучать, никаких ударов, музыки и криков на этом этапе не добавляется.",
+    "empty_folders": "assets/music, assets/combat, assets/ice пока пусты. Категория music собирается как корректный stem из тишины на всю длительность.",
+    "timecodes": "Все таймкоды в формате MM:SS.mmm. Все пути относительны корня проекта."
+  },
+
+  "output": {
+    "sample_rate": 48000,
+    "channels": 2,
+    "bit_depth": 24,
+    "target_lufs": -16.0,
+    "target_true_peak": -1.5,
+    "true_peak_margin_db": 0.3,
+    "target_lra": 11.0,
+    "preserve_dynamics": true,
+    "preserve_dynamics_note": "Не давать loudnorm уходить в динамический режим. linear=true — только просьба: loudnorm остаётся линейным, пока прирост влезает в потолок True Peak и измеренный LRA не больше целевого, иначе он молча переформовывает динамику (замерено: прирост гулял +14.3…+19.8 dB, тихая боевая пауза 00:57-01:20 поднималась на 13.6 dB сильнее громких мест). С этим флагом прирост ограничивается так, чтобы уровни -25/-22/-30 dB и баланс SFX дошли до файла без изменений. Цена: громкость около -18.6 LUFS вместо -16.0 — предел линейного режима равен «потолок True Peak минус crest микса», то есть -1.8 - 16.3.",
+    "max_normalize_gain_db": 14.0,
+    "max_normalize_gain_note": "Работает как две защиты сразу. Первая: не раздувать почти тихий черновик (пока нет голосов). Вторая: не загонять микс глубоко в лимитер True Peak — при большем приросте удары упираются в потолок и их взаимный баланс сплющивается. Замерено: при 14 dB разрыв молоток-щелчок 5.8 dB (в задании 6.0) и master -16.7 LUFS; при 25 dB разрыв падает до 3.4 dB, а master уходит на -14.9 LUFS."
+  },
+
+  "loop": {
+    "crossfade": 0.4,
+    "curve": "qsin"
+  },
+
+  "ducking": {
+    "attack": 0.08,
+    "release": 0.3,
+    "groups": {
+      "ambience": 6.0,
+      "crowd": 8.0
+    }
+  },
+
+  "mix": {
+    "absolute_headroom_db": -9.6,
+    "note": "Запас вниз от 0 dBFS для событий с normalize_source. При нормализации master loudnorm добавляет общий прирост около +14 dB; без запаса удары упираются в потолок True Peak и лимитер расплющивает их в один уровень, из-за чего заданный баланс не доживает до master.wav. Сдвиг одинаков для всех таких событий, поэтому относительный баланс между ними не меняется. Проверено замером: молоток -15.6, щелчок -21.6, вздох -22.6 dBFS — разрывы ровно 6.0 и 1.0 dB, как в задании."
+  },
+
+  "transition": {
+    "fade_end": "01:28.850",
+    "gap_ms": 150,
+    "ice_event_id": "frozen_hall",
+    "note": "Зал и толпа затухают к 01:28.850, затем 150 мс тишины, и в 01:29.000 вступает замороженный зал."
+  },
+
+  "stems": ["ambience", "voices", "sfx", "music"],
+
+  "events": [
+    {
+      "id": "hall_room",
+      "stem": "ambience",
+      "file": "assets/ambience/auction_hall_room.wav",
+      "start": "00:00.000",
+      "end": "01:28.850",
+      "required": true,
+      "loop": true,
+      "duck_group": "ambience",
+      "note": "Акустика зала. Зацикливается equal-power кроссфейдом, под голосами приглушается на 6 dB.",
+      "volume_points": [
+        { "t": "00:00.000", "db": -25.0 },
+        { "t": "00:57.000", "db": -25.0 },
+        { "t": "01:10.000", "db": -22.0 },
+        { "t": "01:20.000", "db": -22.0 },
+        { "t": "01:28.350", "db": -30.0 },
+        { "t": "01:28.850", "db": -96.0 }
+      ]
+    },
+    {
+      "id": "crowd_murmur",
+      "stem": "ambience",
+      "file": "assets/ambience/auction_crowd_murmur.wav",
+      "start": "00:00.000",
+      "end": "01:28.850",
+      "required": false,
+      "loop": true,
+      "duck_group": "crowd",
+      "note": "Гул толпы. Файл может отсутствовать — тогда событие пропускается с предупреждением. Под голосами приглушается на 8 dB.",
+      "volume_points": [
+        { "t": "00:00.000", "db": -28.0 },
+        { "t": "00:20.000", "db": -30.0 },
+        { "t": "00:29.000", "db": -34.0 },
+        { "t": "00:40.000", "db": -27.0 },
+        { "t": "00:48.000", "db": -31.0 },
+        { "t": "00:57.000", "db": -25.0 },
+        { "t": "01:20.000", "db": -36.0 },
+        { "t": "01:28.500", "db": -36.0 },
+        { "t": "01:28.850", "db": -96.0 }
+      ]
+    },
+    {
+      "id": "frozen_hall",
+      "stem": "ambience",
+      "file": "assets/ambience/frozen_hall_ambience.wav",
+      "start": "01:29.000",
+      "end": "01:43.000",
+      "required": true,
+      "loop": true,
+      "duck_group": "ambience",
+      "note": "Замороженный зал. Файл длиннее окна — обрезается; если подставить более короткий, будет зациклен мягким кроссфейдом.",
+      "volume_points": [
+        { "t": "01:29.000", "db": -28.0 },
+        { "t": "01:30.000", "db": -21.0 },
+        { "t": "01:38.000", "db": -21.0 },
+        { "t": "01:41.500", "db": -27.0 },
+        { "t": "01:43.000", "db": -96.0 }
+      ]
+    },
+
+    {
+      "id": "auctioneer_intro",
+      "stem": "voices",
+      "file": "assets/voices/auctioneer_intro.wav",
+      "start": "00:00.000",
+      "required": false,
+      "pan": 0.0,
+      "slot_hint": ["00:08.000", "00:20.000"],
+      "note": "Вступление аукциониста. Ожидаемый слот реплики 00:08.000-00:20.000: если файл окажется длиннее и выйдет за 00:20.000, валидатор предупредит."
+    },
+    {
+      "id": "buyer_suspicious",
+      "stem": "voices",
+      "file": "assets/voices/buyer_suspicious.wav",
+      "start": "00:20.000",
+      "required": false,
+      "pan": -0.2,
+      "note": "Подозрительный покупатель. Панорама слегка влево."
+    },
+    {
+      "id": "lohen_notice",
+      "stem": "voices",
+      "file": "assets/voices/lohen_notice.wav",
+      "start": "00:29.000",
+      "required": false,
+      "pan": 0.0,
+      "note": "Лоэн замечает. Строго по центру."
+    },
+    {
+      "id": "auctioneer_sold",
+      "stem": "voices",
+      "file": "assets/voices/auctioneer_sold.wav",
+      "start": "00:40.000",
+      "required": false,
+      "pan": 0.0,
+      "note": "Продано."
+    },
+    {
+      "id": "lohen_reveal",
+      "stem": "voices",
+      "file": "assets/voices/lohen_reveal.wav",
+      "start": "00:48.000",
+      "required": false,
+      "pan": 0.0,
+      "note": "Раскрытие."
+    },
+    {
+      "id": "lohen_final_question",
+      "stem": "voices",
+      "file": "assets/voices/lohen_final_question.wav",
+      "start": "01:20.000",
+      "required": false,
+      "pan": 0.0,
+      "note": "Финальный вопрос."
+    },
+    {
+      "id": "lohen_final_line",
+      "stem": "voices",
+      "file": "assets/voices/lohen_final_line.wav",
+      "start": "01:29.000",
+      "required": false,
+      "pan": 0.0,
+      "note": "Финальная реплика, поверх замороженного зала."
+    },
+
+    {
+      "id": "crowd_suspicious_whispers",
+      "stem": "sfx",
+      "file": "assets/ambience/crowd_suspicious_whispers.wav",
+      "start": "00:20.000",
+      "end": "00:29.000",
+      "required": true,
+      "loop": false,
+      "duck_group": "crowd",
+      "normalize_source": true,
+      "note": "Шёпот в толпе. Исходник тихий (пик -31.4 dBFS), поэтому normalize_source=true: значения ниже читаются как абсолютный уровень плюс общий запас mix.absolute_headroom_db, максимум выходит на -33.6 dBFS. Перед репликой Лоэна уходит до -36 dB, последние 150 мс — фейд в тишину, чтобы не было щелчка на обрезке.",
+      "volume_points": [
+        { "t": "00:20.000", "db": -30.0 },
+        { "t": "00:24.500", "db": -24.0 },
+        { "t": "00:26.500", "db": -24.0 },
+        { "t": "00:28.850", "db": -36.0 },
+        { "t": "00:29.000", "db": -96.0 }
+      ]
+    },
+    {
+      "id": "metal_restraint_click",
+      "stem": "sfx",
+      "file": "assets/ambience/metal_restraint_click.wav",
+      "start": "00:39.300",
+      "required": true,
+      "loop": false,
+      "gain_db": -12.0,
+      "normalize_source": true,
+      "note": "Щелчок оков. normalize_source=true: -12.0 читается как абсолютный уровень (с общим запасом mix.absolute_headroom_db)."
+    },
+    {
+      "id": "auction_gavel",
+      "stem": "sfx",
+      "file": "assets/ambience/auction_gavel.wav",
+      "start": "00:40.500",
+      "required": true,
+      "loop": false,
+      "gain_db": -6.0,
+      "normalize_source": true,
+      "note": "Удар молотка. Исходник тихий (пик -16.2 dBFS), поэтому normalize_source=true: -6.0 читается как абсолютный уровень плюс общий запас mix.absolute_headroom_db, то есть -15.6 dBFS. Это самое громкое событие дорожки, и после нормализации master оно выходит на потолок, не будучи расплющенным лимитером."
+    },
+    {
+      "id": "crowd_gasp",
+      "stem": "sfx",
+      "file": "assets/ambience/crowd_gasp.wav",
+      "start": "00:56.800",
+      "required": true,
+      "loop": false,
+      "gain_db": -13.0,
+      "normalize_source": true,
+      "note": "Вздох толпы. Однократно, loop=false. normalize_source=true: -13.0 читается как абсолютный уровень (с общим запасом mix.absolute_headroom_db)."
+    }
+  ]
+}
