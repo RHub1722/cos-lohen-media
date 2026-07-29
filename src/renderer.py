@@ -774,16 +774,24 @@ def build_event_chain(
         chain.append(f"asetnsamples=n={ENVELOPE_FRAME_SAMPLES}:p=0")
         chain.append(f"volume='{envelope_to_expr(envelope)}':eval=frame")
 
-    # 9. Ставим на место во времени и добиваем до общей длительности.
+    # 9. Ставим событие на место во времени. Цепочка на этом заканчивается.
+    #
+    # Здесь НЕ НУЖНО добивать поток тишиной до общей длительности и сбрасывать
+    # PTS. Раньше тут стояли apad=whole_dur=103, atrim и asetpts=PTS-STARTPTS —
+    # именно эта форма графа ломала микс при большом числе входов в amix: часть
+    # событий начинала звучать в самом начале дорожки, где должна быть тишина.
+    #
+    # Замерено на синтетическом тесте из 18 одинаковых входов с задержками от
+    # 20 с: с прежней формой в первых двух секундах -21 dBFS вместо тишины, и
+    # результат непредсказуемо менялся от мелких правок графа (при 8 и 18
+    # входах артефакт есть, при 12 — нет). Текущая форма — adelay без добивки,
+    # а apad и atrim один раз уже на самом миксе — чистая при 8, 10, 12, 14, 18
+    # и 26 входах.
+    #
+    # amix с normalize=0 сам считает закончившиеся входы тишиной, поэтому
+    # выравнивать длину каждого события не требуется.
     if start > EPS:
         chain.append(f"adelay={round(start * 1000)}:all=1")
-    chain.extend(
-        [
-            f"apad=whole_dur={total:.6f}",
-            f"atrim=duration={total:.6f}",
-            "asetpts=PTS-STARTPTS",
-        ]
-    )
 
     out_label = f"{label}_out"
     filters.append(f"[{current}]" + ",".join(chain) + f"[{out_label}]")
@@ -828,15 +836,20 @@ def build_stem_command(
         filters.extend(event_filters)
         mix_labels.append(label)
 
+    # Длина выравнивается ровно один раз — здесь, на готовом миксе. События
+    # приходят каждое своей длины, amix с normalize=0 считает закончившиеся
+    # входы тишиной. Раньше выравнивалось внутри каждого события, и такая форма
+    # графа ломала микс при большом числе входов (см. шаг 9 в build_event_chain).
+    tail = f"{fmt},apad=whole_dur={total:.6f},atrim=duration={total:.6f}[out]"
     if len(mix_labels) == 1:
-        filters.append(f"[{mix_labels[0]}]{fmt}[out]")
+        filters.append(f"[{mix_labels[0]}]{tail}")
     else:
         joined = "".join(f"[{label}]" for label in mix_labels)
         # normalize=0: amix не должен делить сумму на число входов —
         # уровни уже выставлены сценарием.
         filters.append(
             f"{joined}amix=inputs={len(mix_labels)}:normalize=0:dropout_transition=0,"
-            f"{fmt},atrim=duration={total:.6f},asetpts=PTS-STARTPTS[out]"
+            f"{tail}"
         )
 
     argv.extend(
