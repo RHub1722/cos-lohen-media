@@ -38,6 +38,7 @@ from renderer import (
     envelope_summary,
     expected_level,
     render_all,
+    suffixed,
     write_command_log,
 )
 from validator import ValidationReport, print_report, validate
@@ -101,6 +102,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="не удалять промежуточный микс output/_premaster.wav",
     )
+    parser.add_argument(
+        "--output-suffix",
+        default="",
+        metavar="SUFFIX",
+        help="приписать суффикс к именам результатов: например --output-suffix v2 "
+        "даст master_v2.wav, ambience_v2.wav, render-report-v2.json. Без него "
+        "имена остаются прежними, и старая сборка не перезаписывается",
+    )
+    parser.add_argument(
+        "--mp3",
+        action="store_true",
+        help="дополнительно сохранить master в MP3 320 kbps для быстрого "
+        "прослушивания (источником всегда остаётся WAV)",
+    )
     return parser.parse_args(argv)
 
 
@@ -162,7 +177,7 @@ def build_report(
     ctx: RenderContext,
 ) -> dict:
     """Формирует содержимое render-report.json."""
-    duck_intervals = result["duck_intervals"]
+    duck_windows = result["duck_windows"]
     ducking = timeline.ducking
 
     events_report = []
@@ -179,12 +194,37 @@ def build_report(
                 "source_duration_seconds": round(event.source_duration or 0.0, 3),
                 "looped": bool(event.loop and (event.source_duration or 0) < end - start),
                 "pan": event.pan,
+                "pan_automation": [
+                    {"t": format_timecode(p.t), "pan": p.pan} for p in event.pan_points
+                ]
+                or None,
+                "fade_in_ms": round(event.fade_in * 1000) if event.fade_in else None,
+                "fade_out_ms": round(event.fade_out * 1000) if event.fade_out else None,
+                "trimmed_silence_ms": (
+                    {
+                        "start": round(event.trim_start * 1000),
+                        "end": round(event.trim_end * 1000),
+                    }
+                    if event.trim_start or event.trim_end
+                    else None
+                ),
+                "stereo_width": event.width if event.width != 1.0 else None,
                 "duck_group": event.duck_group,
+                "ducks": (
+                    {
+                        "groups": event.ducks.groups,
+                        "depth_db": event.ducks.depth_db,
+                        "pre_ms": round(event.ducks.pre * 1000),
+                        "hold_ms": round(event.ducks.hold * 1000),
+                    }
+                    if event.ducks
+                    else None
+                ),
                 # dB в сценарии — относительное ослабление, а не абсолютная
                 # цель, поэтому показываем и уровень исходника, и расчётный
                 # уровень события в миксе.
-                "level": expected_level(event, ctx, duck_intervals),
-                "envelope_db": envelope_summary(event, duck_intervals, ducking),
+                "level": expected_level(event, ctx, duck_windows),
+                "envelope_db": envelope_summary(event, duck_windows, ducking),
                 "note": event.note,
             }
         )
@@ -219,6 +259,8 @@ def build_report(
         },
         "options": {
             "normalize": not args.no_normalize,
+            "output_suffix": ctx.suffix or None,
+            "mp3": args.mp3,
             "verbose": args.verbose,
             "keep_intermediate": args.keep_intermediate,
         },
@@ -241,6 +283,8 @@ def build_report(
             "channels": result["master"]["channels"],
             "codec": result["master"]["codec"],
             "peak_dbfs": result["master"]["peak_db"],
+            # MP3 только для прослушивания, источником он никогда не служит.
+            "mp3": rel(result["mp3"]) if result.get("mp3") else None,
         },
         "loudness": _loudness_to_dict(result["loudness"]),
         "ducking": {
@@ -249,9 +293,23 @@ def build_report(
             "depth_db": ducking.groups,
             "voice_windows": [
                 {"start": format_timecode(a), "end": format_timecode(b)}
-                for a, b in duck_intervals
+                for a, b in result["voice_intervals"]
             ],
-            "method": "предрасчитанная volume-автоматизация по таймкодам голосов "
+            # Помимо реплик фон расчищают акценты (выстрел, ледяной удар) —
+            # у них своя глубина и своё окно, заданные в событии полем ducks.
+            "accent_windows": [
+                {
+                    "group": group,
+                    "source": w.source.split(":", 1)[1],
+                    "start": format_timecode(w.start),
+                    "end": format_timecode(w.end),
+                    "depth_db": w.depth_db,
+                }
+                for group, windows in sorted(duck_windows.items())
+                for w in windows
+                if w.source.startswith("event:")
+            ],
+            "method": "предрасчитанная volume-автоматизация по таймкодам "
             "(без sidechaincompress)",
         },
         "looping": {
@@ -268,6 +326,18 @@ def build_report(
         "stems": [_stem_to_dict(stem) for stem in result["stems"]],
         "events": events_report,
         "missing_optional_assets": missing_optional,
+        # Ассеты, требующие проверки на слух. Автоматического распознавания
+        # человеческого голоса здесь нет — приводится только объективная форма
+        # огибающей, вывод делает человек.
+        "suspicious_assets": result["suspicious_assets"],
+        "manual_check_note": (
+            "Автоматическое определение крика, голоса или музыки внутри эффекта "
+            "не выполняется: надёжно отличить их от удара без прослушивания "
+            "нельзя. По spear_armor_impact.wav замерена огибающая RMS по 100 мс — "
+            "-8/-6/-12/-23/-28/-40/-49/-57 dB, то есть чистое монотонное "
+            "затухание без затянутого участка, характерного для крика. Это "
+            "косвенный признак, а не доказательство."
+        ),
         "validation": {
             "errors": validation.errors,
             "warnings": validation.warnings,
@@ -317,7 +387,11 @@ def main(argv: list[str] | None = None) -> int:
 
     output_dir.mkdir(parents=True, exist_ok=True)
     ctx = RenderContext(
-        timeline=timeline, project_root=PROJECT_ROOT, verbose=args.verbose
+        timeline=timeline,
+        project_root=PROJECT_ROOT,
+        verbose=args.verbose,
+        suffix=args.output_suffix.strip(),
+        make_mp3=args.mp3,
     )
     ctx.probes.update(validation.probes)
 
@@ -331,18 +405,18 @@ def main(argv: list[str] | None = None) -> int:
         )
     except RenderError as exc:
         print(f"  [ERROR] {exc}")
-        write_command_log(ctx, output_dir / "ffmpeg-command.txt")
+        write_command_log(ctx, output_dir / suffixed("ffmpeg-command", ctx.suffix, ".txt", "-"))
         print(f"  Команды сохранены в {args.output}/ffmpeg-command.txt для разбора.")
         return 1
     print()
 
     print("[4/4] Отчёты")
     report = build_report(args, timeline, validation, result, ctx)
-    report_path = output_dir / "render-report.json"
+    report_path = output_dir / suffixed("render-report", ctx.suffix, ".json", "-")
     report_path.write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-    command_path = output_dir / "ffmpeg-command.txt"
+    command_path = output_dir / suffixed("ffmpeg-command", ctx.suffix, ".txt", "-")
     write_command_log(ctx, command_path)
     print(f"  {rel(report_path)}")
     print(f"  {rel(command_path)}")
@@ -367,6 +441,8 @@ def _print_summary(report: dict) -> None:
         f"{master['sample_rate']} Гц  {master['channels']} кан.  "
         f"{master['codec']}  {_format_peak(master['peak_dbfs'])}"
     )
+    if master.get("mp3"):
+        print(f"  {master['mp3']:<28} MP3 320 kbps (только для прослушивания)")
     for stem in report["stems"]:
         tag = "тишина" if stem["silent"] else f"{len(stem['events'])} соб."
         print(

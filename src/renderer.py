@@ -26,6 +26,7 @@ from models import (
     SILENCE_DB,
     DuckingConfig,
     Event,
+    PanPoint,
     Timeline,
     VolumePoint,
     format_timecode,
@@ -90,12 +91,19 @@ class RenderContext:
     timeline: Timeline
     project_root: Path
     verbose: bool = False
+    # Суффикс имён результатов: "v2" даёт master_v2.wav и render-report-v2.json.
+    # Пустой суффикс сохраняет прежние имена, поэтому старая сборка не
+    # перезаписывается и остаётся рядом для сравнения.
+    suffix: str = ""
+    make_mp3: bool = False
     commands: list[CommandRecord] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     probes: dict[str, ProbeResult] = field(default_factory=dict)
     # Пиковый уровень каждого исходника в dBFS — нужен, чтобы посчитать,
     # какой уровень событие получит в миксе. Ключ — путь в posix-виде.
     source_peaks: dict[str, float | None] = field(default_factory=dict)
+    # Тишина по краям исходника (начало, конец) в секундах — для trim_silence.
+    source_silence: dict[str, tuple[float, float]] = field(default_factory=dict)
 
     def probe(self, path: Path) -> ProbeResult:
         key = path.as_posix()
@@ -134,6 +142,15 @@ def arg_path(path: Path, project_root: Path) -> str:
         return path.resolve().relative_to(project_root).as_posix()
     except ValueError:
         return path.as_posix()
+
+
+def suffixed(base: str, suffix: str, ext: str, sep: str = "_") -> str:
+    """Имя файла с необязательным суффиксом версии.
+
+    Разделитель разный по историческим причинам: WAV-стемы называются
+    ``master_v2.wav``, а отчёты — ``render-report-v2.json``.
+    """
+    return f"{base}{sep}{suffix}{ext}" if suffix else f"{base}{ext}"
 
 
 def db_to_amp(db: float) -> float:
@@ -181,66 +198,83 @@ def merge_intervals(intervals: list[tuple[float, float]]) -> list[tuple[float, f
     return merged
 
 
-def _duck_contribution(
-    t: float, interval: tuple[float, float], depth: float, attack: float, release: float
-) -> float:
-    """Смещение громкости в dB от одного голосового интервала в момент t."""
-    start, end = interval
-    if t <= start or depth <= 0:
+@dataclass(frozen=True)
+class DuckWindow:
+    """Один интервал приглушения с собственной глубиной и формой.
+
+    Источников два: реплики (приглушают все группы из ducking.groups) и
+    события с полем ``ducks`` — выстрел или ледяной удар, которым нужно
+    расчистить место в фоне. Поле ``source`` идёт в render-report, чтобы было
+    видно, что именно приглушило фон в данный момент.
+    """
+
+    start: float
+    end: float
+    depth_db: float
+    attack: float
+    release: float
+    source: str
+
+
+# Окна приглушения, сгруппированные по имени группы ("ambience", "crowd", ...).
+DuckMap = dict[str, list["DuckWindow"]]
+
+
+def windows_for(event: Event, duck_windows: "DuckMap") -> list["DuckWindow"]:
+    """Окна приглушения, относящиеся к группе этого события."""
+    if not event.duck_group:
+        return []
+    return duck_windows.get(event.duck_group, [])
+
+
+def _duck_contribution(t: float, window: DuckWindow) -> float:
+    """Смещение громкости в dB от одного окна приглушения в момент t."""
+    if t <= window.start or window.depth_db <= 0:
         return 0.0
-    if t < start + attack:
-        return -depth * (t - start) / attack if attack > EPS else -depth
-    if t <= end:
+    depth, attack, release = window.depth_db, window.attack, window.release
+    if t < window.start + attack:
+        return -depth * (t - window.start) / attack if attack > EPS else -depth
+    if t <= window.end:
         return -depth
-    if t < end + release:
-        return -depth * (1.0 - (t - end) / release) if release > EPS else 0.0
+    if t < window.end + release:
+        return -depth * (1.0 - (t - window.end) / release) if release > EPS else 0.0
     return 0.0
 
 
-def duck_offset_at(
-    t: float,
-    intervals: list[tuple[float, float]],
-    depth: float,
-    ducking: DuckingConfig,
-) -> float:
+def duck_offset_at(t: float, windows: list[DuckWindow]) -> float:
     """Итоговое смещение в dB: берём самое глубокое приглушение из активных."""
-    if depth <= 0 or not intervals:
+    if not windows:
         return 0.0
-    return min(
-        _duck_contribution(t, interval, depth, ducking.attack, ducking.release)
-        for interval in intervals
-    )
+    return min(_duck_contribution(t, w) for w in windows)
 
 
-def duck_breakpoints(
-    intervals: list[tuple[float, float]], ducking: DuckingConfig
-) -> list[float]:
-    """Времена изломов кривой приглушения."""
+def duck_breakpoints(windows: list[DuckWindow]) -> list[float]:
+    """Времена изломов суммарной кривой приглушения."""
     times: list[float] = []
-    for start, end in intervals:
-        times.extend([start, start + ducking.attack, end, end + ducking.release])
+    for w in windows:
+        times.extend([w.start, w.start + w.attack, w.end, w.end + w.release])
     return times
 
 
 def build_envelope(
     event: Event,
-    duck_intervals: list[tuple[float, float]],
+    duck_windows: list[DuckWindow],
     ducking: DuckingConfig,
 ) -> list[VolumePoint]:
     """Собирает единую огибающую события в ЛОКАЛЬНОМ времени (0 = начало события).
 
-    Огибающая = ключевые точки сценария + постоянный gain_db + приглушение
-    под голосами. Все три составляющие кусочно-линейны в dB, поэтому их сумма
-    на объединённом наборе изломов вычисляется точно.
+    Огибающая = ключевые точки сценария + постоянный gain_db + приглушение.
+    Все составляющие кусочно-линейны в dB, поэтому их сумма на объединённом
+    наборе изломов вычисляется точно.
+
+    ``duck_windows`` уже отфильтрованы под группу этого события.
     """
     start, end = event.window()
-    depth = ducking.depth_for(event.duck_group)
 
     base = list(event.volume_points)
     candidates = {start, end}
     candidates.update(p.t for p in base)
-    if depth > 0:
-        candidates.update(duck_breakpoints(duck_intervals, ducking))
+    candidates.update(duck_breakpoints(duck_windows))
 
     times = sorted(t for t in candidates if start - EPS <= t <= end + EPS)
     if not times:
@@ -251,7 +285,7 @@ def build_envelope(
         clamped = min(max(t, start), end)
         db = event.gain_db
         db += interpolate_db(base, clamped) if base else 0.0
-        db += duck_offset_at(clamped, duck_intervals, depth, ducking)
+        db += duck_offset_at(clamped, duck_windows)
         local = round(clamped - start, 6)
         if points and abs(points[-1].t - local) <= EPS:
             # Совпавшие по времени точки: оставляем более тихую, чтобы
@@ -262,6 +296,78 @@ def build_envelope(
         points.append(VolumePoint(t=local, db=db))
 
     return points
+
+
+def linear_expr(points: list[tuple[float, float]]) -> str:
+    """Кусочно-линейное выражение по значению (не по dB) — для панорамы."""
+    if not points:
+        return "1.0"
+    if len(points) == 1:
+        return f"{points[0][1]:.9f}"
+    expr = f"{points[-1][1]:.9f}"
+    for (t0, v0), (t1, v1) in reversed(list(zip(points, points[1:]))):
+        if t1 - t0 <= EPS:
+            continue
+        if abs(v1 - v0) <= 1e-9:
+            segment = f"{v0:.9f}"
+        else:
+            slope = (v1 - v0) / (t1 - t0)
+            segment = f"({v0:.9f}+{slope:.9f}*(t-{t0:.6f}))"
+        expr = f"if(lt(t,{t1:.6f}),{segment},{expr})"
+    if points[0][0] > EPS:
+        expr = f"if(lt(t,{points[0][0]:.6f}),{points[0][1]:.9f},{expr})"
+    return expr
+
+
+def pan_channel_curves(
+    points: list[PanPoint], start: float, end: float
+) -> tuple[list[tuple[float, float]], list[tuple[float, float]]]:
+    """Раскладывает автоматизацию панорамы в кривые усиления L и R.
+
+    Закон тот же, что у статической панорамы: только ослабление дальнего
+    канала, без подъёма выше единицы. Там, где панорама переходит через центр,
+    добавляется точка излома — иначе линейная интерполяция усилений срезала бы
+    угол и звук на миг проваливался бы по уровню.
+    """
+    times = sorted({min(max(p.t, start), end) for p in points} | {start, end})
+
+    crossings: list[float] = []
+    for left, right in zip(points, points[1:]):
+        if left.pan == 0 or right.pan == 0 or (left.pan < 0) == (right.pan < 0):
+            continue
+        span = right.t - left.t
+        if span <= EPS:
+            continue
+        zero_t = left.t + span * (-left.pan) / (right.pan - left.pan)
+        if start - EPS <= zero_t <= end + EPS:
+            crossings.append(min(max(zero_t, start), end))
+    times = sorted(set(times) | set(crossings))
+
+    left_curve: list[tuple[float, float]] = []
+    right_curve: list[tuple[float, float]] = []
+    for t in times:
+        pan = _interpolate_pan(points, t)
+        gl, gr = pan_gains(pan)
+        local = round(t - start, 6)
+        left_curve.append((local, gl))
+        right_curve.append((local, gr))
+    return left_curve, right_curve
+
+
+def _interpolate_pan(points: list[PanPoint], t: float) -> float:
+    if not points:
+        return 0.0
+    if t <= points[0].t:
+        return points[0].pan
+    if t >= points[-1].t:
+        return points[-1].pan
+    for left, right in zip(points, points[1:]):
+        if left.t <= t <= right.t:
+            span = right.t - left.t
+            if span <= EPS:
+                return right.pan
+            return left.pan + (right.pan - left.pan) * (t - left.t) / span
+    return points[-1].pan
 
 
 def envelope_to_expr(points: list[VolumePoint]) -> str:
@@ -320,11 +426,11 @@ def source_compensation_db(event: Event, ctx: RenderContext) -> float:
 
 def final_envelope(
     event: Event,
-    duck_intervals: list[tuple[float, float]],
+    duck_windows: DuckMap,
     ctx: RenderContext,
 ) -> list[VolumePoint]:
     """Огибающая, которая реально уходит в фильтр volume."""
-    points = build_envelope(event, duck_intervals, ctx.timeline.ducking)
+    points = build_envelope(event, windows_for(event, duck_windows), ctx.timeline.ducking)
     compensation = source_compensation_db(event, ctx)
     if abs(compensation) < 1e-9:
         return points
@@ -405,11 +511,25 @@ def resolve_events(ctx: RenderContext) -> tuple[list[Event], list[tuple[Event, s
             continue
 
         event.source_duration = probe.duration
+        if event.trim_silence:
+            lead, tail = ctx.source_silence.get(key, (0.0, 0.0))
+            # Не даём обрезке съесть весь файл, если он целиком тихий.
+            if lead + tail < probe.duration - 0.05:
+                event.trim_start, event.trim_end = lead, tail
+            elif lead or tail:
+                ctx.warn(
+                    f"{event.id}: обрезка тишины пропущена — по замеру тихо почти "
+                    f"всё ({lead:.3f} с в начале, {tail:.3f} с в конце при "
+                    f"длине {probe.duration:.3f} с)"
+                )
+
+        effective = probe.duration - event.trim_start - event.trim_end
         if event.end is not None:
             event.resolved_end = min(event.end, timeline.total_duration)
         else:
+            # Длительность задаёт файл — уже без обрезанной тишины.
             event.resolved_end = min(
-                event.start + probe.duration, timeline.total_duration
+                event.start + effective, timeline.total_duration
             )
 
         if event.resolved_end - event.start <= EPS:
@@ -421,14 +541,120 @@ def resolve_events(ctx: RenderContext) -> tuple[list[Event], list[tuple[Event, s
     return usable, skipped
 
 
-def voice_duck_intervals(events: list[Event], timeline: Timeline) -> list[tuple[float, float]]:
-    """Интервалы, в которые звучит хоть один голос — основа для приглушения."""
+def voice_intervals(events: list[Event]) -> list[tuple[float, float]]:
+    """Интервалы, в которые звучит хоть один голос."""
     raw = [
         (event.start, event.resolved_end)
         for event in events
         if event.stem == "voices" and event.resolved_end is not None
     ]
     return merge_intervals(raw)
+
+
+def build_duck_windows(events: list[Event], timeline: Timeline) -> DuckMap:
+    """Собирает окна приглушения по группам из двух источников.
+
+    1. Реплики: приглушают каждую группу из ``ducking.groups`` на её глубину.
+       Голоса всегда в приоритете, это правило не настраивается по событиям.
+    2. События с полем ``ducks``: акценты вроде выстрела или ледяного удара,
+       которым нужно на короткое время расчистить фон. Окно задаётся явно.
+    """
+    ducking = timeline.ducking
+    windows: DuckMap = {group: [] for group in ducking.groups}
+
+    for start, end in voice_intervals(events):
+        for group, depth in ducking.groups.items():
+            if depth <= 0:
+                continue
+            windows[group].append(
+                DuckWindow(
+                    start=start,
+                    end=end,
+                    depth_db=depth,
+                    attack=ducking.attack,
+                    release=ducking.release,
+                    source=f"voice:{format_timecode(start)}",
+                )
+            )
+
+    for event in sorted(events, key=lambda e: (e.start, e.id)):
+        if not event.ducks:
+            continue
+        spec = event.ducks
+        window_start = max(0.0, event.start - spec.pre)
+        window_end = min(timeline.total_duration, event.start + spec.hold)
+        for group in spec.groups:
+            windows.setdefault(group, []).append(
+                DuckWindow(
+                    start=window_start,
+                    end=window_end,
+                    depth_db=spec.depth_db,
+                    attack=ducking.attack,
+                    release=ducking.release,
+                    source=f"event:{event.id}",
+                )
+            )
+
+    return windows
+
+
+def measure_silence_edges(ctx: RenderContext) -> None:
+    """Определяет тишину по краям исходников для событий с trim_silence.
+
+    Замер делается на сборке, а не прописывается числом в сценарии: при замене
+    WAV на файл с другой паузой в начале обрезка пересчитается сама.
+
+    Порог в начале -50 dB, в конце -60 dB. Разные пороги не случайны: хвост
+    реверберации у этих файлов уходит ниже -50 dB, и одинаковый порог срезал бы
+    естественное затухание, чего делать нельзя.
+    """
+    for event in ctx.timeline.events:
+        if not event.trim_silence:
+            continue
+        key = event.file.as_posix()
+        if key in ctx.source_silence:
+            continue
+        probe = ctx.probe(event.file)
+        if not probe.exists or probe.error or not probe.duration:
+            continue
+        lead = _silence_span(ctx, event.file, "-50dB", reverse=False, duration=probe.duration)
+        tail = _silence_span(ctx, event.file, "-60dB", reverse=True, duration=probe.duration)
+        ctx.source_silence[key] = (lead, tail)
+
+
+def _silence_span(
+    ctx: RenderContext, path: Path, threshold: str, reverse: bool, duration: float
+) -> float:
+    """Длина тишины с одного края: считается как убыль длительности.
+
+    silenceremove сообщает результат только длиной вывода, поэтому меряем
+    разницу — это надёжнее, чем разбирать парные события silencedetect.
+    """
+    chain = (
+        f"silenceremove=start_periods=1:start_duration=0"
+        f":start_threshold={threshold}:detection=peak"
+    )
+    if reverse:
+        chain = f"areverse,{chain},areverse"
+    argv = [
+        "ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-i",
+        arg_path(path, ctx.project_root),
+        "-af",
+        chain,
+        "-f",
+        "null",
+        "-",
+    ]
+    stderr = run_ffmpeg(ctx, f"silence:{'tail' if reverse else 'lead'}:{path.name}", argv)
+    matches = re.findall(r"time=(\d+):(\d+):(\d+(?:\.\d+)?)", stderr)
+    if not matches:
+        return 0.0
+    h, m, s = matches[-1]
+    kept = int(h) * 3600 + int(m) * 60 + float(s)
+    return max(0.0, round(duration - kept, 4))
 
 
 # --------------------------------------------------------------------------- #
@@ -440,7 +666,7 @@ def build_event_chain(
     event: Event,
     input_indexes: list[int],
     ctx: RenderContext,
-    duck_intervals: list[tuple[float, float]],
+    duck_windows: DuckMap,
 ) -> tuple[list[str], str]:
     """Цепочка фильтров для одного события. Возвращает (фильтры, выходная метка)."""
     timeline = ctx.timeline
@@ -456,12 +682,23 @@ def build_event_chain(
 
     filters: list[str] = []
 
-    # 1. Нормализуем каждую копию исходника к рабочему формату.
+    # 1. Нормализуем каждую копию исходника к рабочему формату и, если нужно,
+    #    срезаем тишину по краям. Порог в конце ниже, чтобы не задеть реверб.
+    trim_filter = ""
+    if event.trim_start > EPS or event.trim_end > EPS:
+        src = event.source_duration or 0.0
+        keep_until = max(event.trim_start, src - event.trim_end)
+        trim_filter = (
+            f"atrim=start={event.trim_start:.6f}:end={keep_until:.6f},"
+            f"asetpts=PTS-STARTPTS,"
+        )
+
     copies: list[str] = []
     for i, index in enumerate(input_indexes):
         copy_label = f"{label}_c{i}"
         filters.append(
             f"[{index}:a]aresample={output_cfg.sample_rate}:first_pts=0,{fmt},"
+            f"asetpts=PTS-STARTPTS,{trim_filter}"
             f"asetpts=PTS-STARTPTS[{copy_label}]"
         )
         copies.append(copy_label)
@@ -483,14 +720,52 @@ def build_event_chain(
         "asetpts=PTS-STARTPTS",
     ]
 
-    # 4. Панорама.
-    if abs(event.pan) > 1e-9:
+    # 4. Короткие фейды против щелчков на краях (обычно 5-20 мс).
+    if event.fade_in > EPS:
+        chain.append(f"afade=t=in:st=0:d={min(event.fade_in, need):.6f}:curve=tri")
+    if event.fade_out > EPS:
+        fo = min(event.fade_out, need)
+        chain.append(f"afade=t=out:st={need - fo:.6f}:d={fo:.6f}:curve=tri")
+
+    # 5. Переворот каналов — до расширения и панорамы.
+    if event.swap_channels:
+        chain.append(f"pan={output_cfg.channel_layout}|c0=c1|c1=c0")
+
+    # 6. Расширение стереобазы.
+    if abs(event.width - 1.0) > 1e-9:
+        chain.append(f"extrastereo=m={event.width:.4f}:c=0")
+
+    # 7. Панорама: статическая либо автоматизированная.
+    if event.pan_points:
+        # Автоматизация требует раздельной обработки каналов: фильтр pan
+        # умеет только постоянные коэффициенты.
+        left_curve, right_curve = pan_channel_curves(event.pan_points, start, end)
+        split = f"{label}_ps"
+        filters.append(f"[{current}]{','.join(chain)}[{split}]")
+        chain = []
+        filters.append(
+            f"[{split}]asetnsamples=n={ENVELOPE_FRAME_SAMPLES}:p=0,"
+            f"channelsplit=channel_layout={output_cfg.channel_layout}"
+            f"[{label}_pl][{label}_pr]"
+        )
+        filters.append(
+            f"[{label}_pl]volume='{linear_expr(left_curve)}':eval=frame[{label}_plg]"
+        )
+        filters.append(
+            f"[{label}_pr]volume='{linear_expr(right_curve)}':eval=frame[{label}_prg]"
+        )
+        current = f"{label}_pj"
+        filters.append(
+            f"[{label}_plg][{label}_prg]join=inputs=2"
+            f":channel_layout={output_cfg.channel_layout}[{current}]"
+        )
+    elif abs(event.pan) > 1e-9:
         left, right = pan_gains(event.pan)
         chain.append(f"pan={output_cfg.channel_layout}|c0={left:.6f}*c0|c1={right:.6f}*c1")
 
-    # 5. Автоматизация громкости (ключевые точки + приглушение + компенсация
+    # 8. Автоматизация громкости (ключевые точки + приглушение + компенсация
     #    уровня исходника, если включён normalize_source).
-    envelope = final_envelope(event, duck_intervals, ctx)
+    envelope = final_envelope(event, duck_windows, ctx)
     if is_static_envelope(envelope):
         amplitude = db_to_amp(envelope[0].db) if envelope else 1.0
         if abs(amplitude - 1.0) > 1e-9:
@@ -499,7 +774,7 @@ def build_event_chain(
         chain.append(f"asetnsamples=n={ENVELOPE_FRAME_SAMPLES}:p=0")
         chain.append(f"volume='{envelope_to_expr(envelope)}':eval=frame")
 
-    # 6. Ставим на место во времени и добиваем до общей длительности.
+    # 9. Ставим на место во времени и добиваем до общей длительности.
     if start > EPS:
         chain.append(f"adelay={round(start * 1000)}:all=1")
     chain.extend(
@@ -520,7 +795,7 @@ def build_stem_command(
     events: list[Event],
     ctx: RenderContext,
     out_path: Path,
-    duck_intervals: list[tuple[float, float]],
+    duck_windows: DuckMap,
 ) -> list[str]:
     """Собирает полную команду ffmpeg для одного stem."""
     timeline = ctx.timeline
@@ -539,18 +814,17 @@ def build_stem_command(
     for event in sorted(events, key=lambda e: (e.start, e.id)):
         start, end = event.window()
         need = end - start
-        copies = (
-            loop_copies(need, event.source_duration or 0.0, timeline.loop.crossfade)
-            if event.loop
-            else 1
-        )
+        # Считаем по длительности ПОСЛЕ обрезки тишины — именно столько
+        # материала даёт одна копия.
+        effective = (event.source_duration or 0.0) - event.trim_start - event.trim_end
+        copies = loop_copies(need, effective, timeline.loop.crossfade) if event.loop else 1
         indexes: list[int] = []
         for _ in range(copies):
             argv.extend(["-i", arg_path(event.file, ctx.project_root)])
             indexes.append(input_count)
             input_count += 1
 
-        event_filters, label = build_event_chain(event, indexes, ctx, duck_intervals)
+        event_filters, label = build_event_chain(event, indexes, ctx, duck_windows)
         filters.extend(event_filters)
         mix_labels.append(label)
 
@@ -722,7 +996,7 @@ def render_stems(
     usable: list[Event],
     skipped: list[tuple[Event, str]],
     output_dir: Path,
-    duck_intervals: list[tuple[float, float]],
+    duck_windows: DuckMap,
 ) -> list[StemResult]:
     """Рендерит по одному файлу на каждую категорию из timeline.stems."""
     results: list[StemResult] = []
@@ -732,7 +1006,7 @@ def render_stems(
 
     for stem in ctx.timeline.stems:
         stem_events = [event for event in usable if event.stem == stem]
-        out_path = output_dir / f"{stem}.wav"
+        out_path = output_dir / suffixed(stem, ctx.suffix, ".wav")
         silent = not stem_events
 
         if silent:
@@ -741,7 +1015,7 @@ def render_stems(
             argv = build_silence_command(ctx, out_path)
         else:
             print(f"  [stem]  {stem}: событий — {len(stem_events)}")
-            argv = build_stem_command(stem, stem_events, ctx, out_path, duck_intervals)
+            argv = build_stem_command(stem, stem_events, ctx, out_path, duck_windows)
 
         run_ffmpeg(ctx, f"stem:{stem}", argv)
         # probe_file принимает и относительный, и абсолютный путь:
@@ -816,8 +1090,8 @@ def render_master(
 ) -> tuple[Path, LoudnessResult, float | None]:
     """Сводит stems в master.wav и приводит громкость к целевым значениям."""
     output_cfg = ctx.timeline.output
-    master_path = output_dir / "master.wav"
-    premaster_path = output_dir / "_premaster.wav"
+    master_path = output_dir / suffixed("master", ctx.suffix, ".wav")
+    premaster_path = output_dir / suffixed("_premaster", ctx.suffix, ".wav")
 
     print("  [mix]   свожу stems в промежуточный микс (float32)")
     run_ffmpeg(ctx, "premaster", build_premaster_command(ctx, stems, premaster_path))
@@ -985,6 +1259,34 @@ def render_master(
     return master_path, loudness, master_peak
 
 
+def export_mp3(ctx: RenderContext, master_path: Path) -> Path:
+    """MP3 320 kbps для быстрого прослушивания.
+
+    Источником всегда остаётся готовый WAV — MP3 никогда не участвует в
+    дальнейшей обработке, чтобы потери не попали в мастер.
+    """
+    mp3_path = master_path.with_suffix(".mp3")
+    argv = [
+        "ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-y",
+        "-i",
+        arg_path(master_path, ctx.project_root),
+        "-c:a",
+        "libmp3lame",
+        "-b:a",
+        "320k",
+        "-ar",
+        str(ctx.timeline.output.sample_rate),
+        "-ac",
+        str(ctx.timeline.output.channels),
+        arg_path(mp3_path, ctx.project_root),
+    ]
+    run_ffmpeg(ctx, "mp3", argv)
+    return mp3_path
+
+
 def write_command_log(ctx: RenderContext, path: Path) -> None:
     """Сохраняет все выполненные команды ffmpeg в читаемом виде."""
     lines = [
@@ -1001,13 +1303,13 @@ def write_command_log(ctx: RenderContext, path: Path) -> None:
 
 
 def envelope_summary(
-    event: Event, duck_intervals: list[tuple[float, float]], ducking: DuckingConfig
+    event: Event, duck_windows: DuckMap, ducking: DuckingConfig
 ) -> list[dict]:
     """Огибающая события в удобном для отчёта виде (абсолютное время)."""
     start, _ = event.window()
     return [
         {"t": format_timecode(start + point.t), "db": round(point.db, 2)}
-        for point in build_envelope(event, duck_intervals, ducking)
+        for point in build_envelope(event, windows_for(event, duck_windows), ducking)
     ]
 
 
@@ -1025,7 +1327,7 @@ def measure_source_peaks(ctx: RenderContext, events: list[Event]) -> None:
 def expected_level(
     event: Event,
     ctx: RenderContext,
-    duck_intervals: list[tuple[float, float]],
+    duck_windows: DuckMap,
 ) -> dict:
     """Какой уровень событие получит в миксе.
 
@@ -1035,7 +1337,7 @@ def expected_level(
     не требуя отдельного прохода на каждое событие.
     """
     source_peak = ctx.source_peaks.get(event.file.as_posix())
-    scenario = build_envelope(event, duck_intervals, ctx.timeline.ducking)
+    scenario = build_envelope(event, windows_for(event, duck_windows), ctx.timeline.ducking)
     loudest = max((point.db for point in scenario), default=0.0)
     compensation = source_compensation_db(event, ctx)
     return {
@@ -1060,11 +1362,11 @@ HOT_PEAK_DBFS = -1.0
 def _warn_on_level_imbalance(
     ctx: RenderContext,
     events: list[Event],
-    duck_intervals: list[tuple[float, float]],
+    duck_windows: DuckMap,
 ) -> None:
     """Предупреждает, если событие окажется неслышимым или слишком горячим."""
     for event in sorted(events, key=lambda e: (e.start, e.id)):
-        level = expected_level(event, ctx, duck_intervals)
+        level = expected_level(event, ctx, duck_windows)
         peak = level["expected_peak_dbfs"]
         if peak is None:
             continue
@@ -1082,6 +1384,45 @@ def _warn_on_level_imbalance(
             )
 
 
+def suspicious_assets(ctx: RenderContext, events: list[Event]) -> list[dict]:
+    """Ассеты, которые стоит проверить руками, с указанием причины.
+
+    Важно: автоматического распознавания человеческого голоса здесь нет и быть
+    не может — надёжно отличить крик от удара без слуховой проверки нельзя.
+    Вместо этого приводится объективная форма огибающей: удар затухает
+    монотонно, а крик держит уровень. Решение остаётся за человеком.
+    """
+    findings: list[dict] = []
+    seen: set[str] = set()
+    for event in sorted(events, key=lambda e: (e.start, e.id)):
+        key = event.file.as_posix()
+        reasons: list[str] = []
+
+        peak = ctx.source_peaks.get(key)
+        if peak is not None and peak >= -0.1 and key not in seen:
+            reasons.append(
+                f"исходник сведён в пик {peak:+.2f} dBFS — запаса в файле нет, "
+                f"уровень задаётся только сценарием"
+            )
+        if event.trim_start > 0.1 or event.trim_end > 0.1:
+            reasons.append(
+                f"обрезана тишина по краям: {event.trim_start * 1000:.0f} мс в "
+                f"начале, {event.trim_end * 1000:.0f} мс в конце"
+            )
+        if not reasons:
+            continue
+        seen.add(key)
+        findings.append(
+            {
+                "id": event.id,
+                "file": key,
+                "start": format_timecode(event.start),
+                "reasons": reasons,
+            }
+        )
+    return findings
+
+
 def render_all(
     ctx: RenderContext,
     output_dir: Path,
@@ -1089,6 +1430,9 @@ def render_all(
     keep_intermediate: bool = False,
 ) -> dict:
     """Полный прогон: stems -> master -> данные для render-report.json."""
+    # Тишину по краям меряем до resolve_events: она меняет фактическую
+    # длительность one-shot событий, у которых конец задаётся файлом.
+    measure_silence_edges(ctx)
     usable, skipped = resolve_events(ctx)
 
     for event, reason in skipped:
@@ -1097,26 +1441,48 @@ def render_all(
             f"[{event.file.as_posix()}]"
         )
 
-    duck_intervals = voice_duck_intervals(usable, ctx.timeline)
-    if duck_intervals:
-        windows = ", ".join(
-            f"{format_timecode(a)}-{format_timecode(b)}" for a, b in duck_intervals
+    for event in usable:
+        if event.trim_start > EPS or event.trim_end > EPS:
+            print(
+                f"  [trim]  {event.id}: обрезано {event.trim_start * 1000:.0f} мс в "
+                f"начале и {event.trim_end * 1000:.0f} мс в конце"
+            )
+
+    duck_windows = build_duck_windows(usable, ctx.timeline)
+    voices = voice_intervals(usable)
+    if voices:
+        shown = ", ".join(
+            f"{format_timecode(a)}-{format_timecode(b)}" for a, b in voices
         )
-        print(f"  [duck]  интервалы голосов: {windows}")
+        print(f"  [duck]  интервалы голосов: {shown}")
     else:
-        print("  [duck]  голосов в миксе нет — приглушение не применяется")
+        print("  [duck]  голосов в миксе нет — приглушение под реплики не применяется")
+    accents = [
+        w for group in duck_windows.values() for w in group if w.source.startswith("event:")
+    ]
+    if accents:
+        shown = ", ".join(
+            sorted({f"{w.source.split(':', 1)[1]} ({w.depth_db:.1f} dB)" for w in accents})
+        )
+        print(f"  [duck]  акценты расчищают фон: {shown}")
 
     measure_source_peaks(ctx, usable)
-    _warn_on_level_imbalance(ctx, usable, duck_intervals)
+    _warn_on_level_imbalance(ctx, usable, duck_windows)
 
-    stems = render_stems(ctx, usable, skipped, output_dir, duck_intervals)
+    stems = render_stems(ctx, usable, skipped, output_dir, duck_windows)
     master_path, loudness, master_peak = render_master(
         ctx, stems, output_dir, normalize, keep_intermediate
     )
 
     master_probe = probe_file(master_path, ctx.project_root)
 
+    mp3_path = None
+    if ctx.make_mp3:
+        print("  [mp3]   сохраняю MP3 320 kbps из готового WAV")
+        mp3_path = export_mp3(ctx, master_path)
+
     return {
+        "mp3": mp3_path,
         "stems": stems,
         "master": {
             "path": master_path,
@@ -1129,5 +1495,7 @@ def render_all(
         "loudness": loudness,
         "usable_events": usable,
         "skipped_events": skipped,
-        "duck_intervals": duck_intervals,
+        "suspicious_assets": suspicious_assets(ctx, usable),
+        "duck_windows": duck_windows,
+        "voice_intervals": voices,
     }

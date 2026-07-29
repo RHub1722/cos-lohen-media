@@ -87,6 +87,31 @@ class VolumePoint:
     db: float
 
 
+@dataclass(frozen=True)
+class PanPoint:
+    """Точка автоматизации панорамы: время (сек) и положение от -1.0 до 1.0."""
+
+    t: float
+    pan: float
+
+
+@dataclass
+class DuckSpec:
+    """Событие само приглушает указанные группы вокруг себя.
+
+    Нужно для акцентов: выстрел или ледяной удар должны читаться отчётливо,
+    поэтому фон на короткое время уходит вниз. В отличие от приглушения под
+    голосами, окно задаётся явно (``pre`` до начала и ``hold`` после), а не
+    длиной файла — у выстрела длинный реверб-хвост, и держать фон приглушённым
+    всё это время не нужно.
+    """
+
+    groups: list[str]
+    depth_db: float
+    pre: float = 0.0
+    hold: float = 0.3
+
+
 @dataclass
 class OutputConfig:
     """Параметры итогового файла и нормализации громкости."""
@@ -200,12 +225,31 @@ class Event:
     # сильно отличается от остальных.
     normalize_source: bool = False
     volume_points: list[VolumePoint] = field(default_factory=list)
+    # Автоматизация панорамы. Если задана, перебивает статический pan.
+    pan_points: list[PanPoint] = field(default_factory=list)
+    # Короткие фейды против щелчков на стыках (5-20 мс), в секундах.
+    fade_in: float = 0.0
+    fade_out: float = 0.0
+    # true — обрезать тишину по краям исходника. Порог в начале -50 dB,
+    # в конце -60 dB: хвост реверберации громче и не срезается.
+    trim_silence: bool = False
+    # Расширение стереобазы: 1.0 — как есть, больше — шире.
+    width: float = 1.0
+    # Поменять каналы местами. Нужно, когда в исходнике уже записано движение
+    # панорамы, а по сценарию оно должно идти в другую сторону: встроенный образ
+    # бывает сильнее любой автоматизации баланса, и перебить его нельзя.
+    swap_channels: bool = False
+    # Приглушение, которое это событие накладывает на другие группы.
+    ducks: DuckSpec | None = None
     slot_hint: tuple[float, float] | None = None
     note: str = ""
 
     # Заполняется рендерером после probe исходника.
     source_duration: float | None = None
     resolved_end: float | None = None
+    # Сколько секунд отрезано по краям при trim_silence.
+    trim_start: float = 0.0
+    trim_end: float = 0.0
 
     @property
     def has_fixed_end(self) -> bool:
@@ -255,6 +299,52 @@ def _parse_volume_points(raw: object, where: str) -> list[VolumePoint]:
         points.append(VolumePoint(t=parse_timecode(item["t"], f"{loc}.t"), db=float(db)))
     points.sort(key=lambda p: p.t)
     return points
+
+
+def _parse_pan_points(raw: object, where: str) -> list[PanPoint]:
+    if raw is None:
+        return []
+    if not isinstance(raw, list):
+        raise ScenarioError(f"{where}.pan_points должен быть массивом")
+    points: list[PanPoint] = []
+    for i, item in enumerate(raw):
+        loc = f"{where}.pan_points[{i}]"
+        if not isinstance(item, dict) or "t" not in item or "pan" not in item:
+            raise ScenarioError(f"{loc}: обязательны поля 't' и 'pan'")
+        pan = item["pan"]
+        if not isinstance(pan, (int, float)) or isinstance(pan, bool):
+            raise ScenarioError(f"{loc}.pan должен быть числом")
+        if not -1.0 <= float(pan) <= 1.0:
+            raise ScenarioError(f"{loc}.pan={pan} вне диапазона [-1.0, 1.0]")
+        points.append(PanPoint(t=parse_timecode(item["t"], f"{loc}.t"), pan=float(pan)))
+    points.sort(key=lambda p: p.t)
+    return points
+
+
+def _parse_ducks(raw: object, where: str) -> DuckSpec | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        raise ScenarioError(f"{where}.ducks должен быть объектом")
+    groups = raw.get("groups")
+    if not isinstance(groups, list) or not groups or not all(
+        isinstance(g, str) for g in groups
+    ):
+        raise ScenarioError(f"{where}.ducks.groups должен быть непустым массивом строк")
+    depth = raw.get("depth_db")
+    if not isinstance(depth, (int, float)) or isinstance(depth, bool):
+        raise ScenarioError(f"{where}.ducks.depth_db должен быть числом")
+    if float(depth) < 0:
+        raise ScenarioError(
+            f"{where}.ducks.depth_db={depth} должен быть положительным — "
+            f"это глубина приглушения, знак добавляется сам"
+        )
+    return DuckSpec(
+        groups=[str(g) for g in groups],
+        depth_db=float(depth),
+        pre=float(raw.get("pre", 0.0)),
+        hold=float(raw.get("hold", 0.3)),
+    )
 
 
 def _parse_event(raw: object, index: int, project_root: Path) -> Event:
@@ -317,6 +407,13 @@ def _parse_event(raw: object, index: int, project_root: Path) -> Event:
         pan=float(pan),
         normalize_source=bool(raw.get("normalize_source", False)),
         volume_points=_parse_volume_points(raw.get("volume_points"), where),
+        pan_points=_parse_pan_points(raw.get("pan_points"), where),
+        fade_in=float(raw.get("fade_in", 0.0)),
+        fade_out=float(raw.get("fade_out", 0.0)),
+        trim_silence=bool(raw.get("trim_silence", False)),
+        width=float(raw.get("width", 1.0)),
+        swap_channels=bool(raw.get("swap_channels", False)),
+        ducks=_parse_ducks(raw.get("ducks"), where),
         slot_hint=slot_hint,
         note=str(raw.get("note", "")),
     )
