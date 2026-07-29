@@ -1,0 +1,63 @@
+# Команды FFmpeg, выполненные при последней сборке.
+# Рабочий каталог для всех команд — корень проекта.
+# Всего команд: 20
+
+## [1] peak:src:hall_room
+ffmpeg -hide_banner -nostdin -i assets/ambience/auction_hall_room.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [2] peak:src:crowd_murmur
+ffmpeg -hide_banner -nostdin -i assets/ambience/auction_crowd_murmur.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [3] peak:src:frozen_hall
+ffmpeg -hide_banner -nostdin -i assets/ambience/frozen_hall_ambience.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [4] peak:src:crowd_suspicious_whispers
+ffmpeg -hide_banner -nostdin -i assets/ambience/crowd_suspicious_whispers.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [5] peak:src:metal_restraint_click
+ffmpeg -hide_banner -nostdin -i assets/ambience/metal_restraint_click.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [6] peak:src:auction_gavel
+ffmpeg -hide_banner -nostdin -i assets/ambience/auction_gavel.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [7] peak:src:crowd_gasp
+ffmpeg -hide_banner -nostdin -i assets/ambience/crowd_gasp.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [8] stem:ambience
+ffmpeg -hide_banner -nostdin -y -i assets/ambience/auction_crowd_murmur.wav -i assets/ambience/auction_crowd_murmur.wav -i assets/ambience/auction_crowd_murmur.wav -i assets/ambience/auction_hall_room.wav -i assets/ambience/auction_hall_room.wav -i assets/ambience/auction_hall_room.wav -i assets/ambience/frozen_hall_ambience.wav -filter_complex "[0:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[crowd_murmur_c0];[1:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[crowd_murmur_c1];[2:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[crowd_murmur_c2];[crowd_murmur_c0][crowd_murmur_c1]acrossfade=d=0.400000:c1=qsin:c2=qsin[crowd_murmur_x1];[crowd_murmur_x1][crowd_murmur_c2]acrossfade=d=0.400000:c1=qsin:c2=qsin[crowd_murmur_x2];[crowd_murmur_x2]apad=whole_dur=88.850000,atrim=duration=88.850000,asetpts=PTS-STARTPTS,asetnsamples=n=128:p=0,volume='if(lt(t,20.000000),pow(10,(-28.000000000+-0.100000000*(t-0.000000))/20),if(lt(t,29.000000),pow(10,(-30.000000000+-0.444444444*(t-20.000000))/20),if(lt(t,40.000000),pow(10,(-34.000000000+0.636363636*(t-29.000000))/20),if(lt(t,48.000000),pow(10,(-27.000000000+-0.500000000*(t-40.000000))/20),if(lt(t,57.000000),pow(10,(-31.000000000+0.666666667*(t-48.000000))/20),if(lt(t,80.000000),pow(10,(-25.000000000+-0.478260870*(t-57.000000))/20),if(lt(t,88.500000),0.015848932,if(lt(t,88.850000),pow(10,(-36.000000000+-171.428571429*(t-88.500000))/20),0.000000000))))))))':eval=frame[crowd_murmur_out];[3:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[hall_room_c0];[4:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[hall_room_c1];[5:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[hall_room_c2];[hall_room_c0][hall_room_c1]acrossfade=d=0.400000:c1=qsin:c2=qsin[hall_room_x1];[hall_room_x1][hall_room_c2]acrossfade=d=0.400000:c1=qsin:c2=qsin[hall_room_x2];[hall_room_x2]apad=whole_dur=88.850000,atrim=duration=88.850000,asetpts=PTS-STARTPTS,asetnsamples=n=128:p=0,volume='if(lt(t,57.000000),0.056234133,if(lt(t,70.000000),pow(10,(-25.000000000+0.230769231*(t-57.000000))/20),if(lt(t,80.000000),0.079432823,if(lt(t,88.350000),pow(10,(-22.000000000+-0.958083832*(t-80.000000))/20),if(lt(t,88.850000),pow(10,(-30.000000000+-132.000000000*(t-88.350000))/20),0.000000000)))))':eval=frame[hall_room_out];[6:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[frozen_hall_c0];[frozen_hall_c0]apad=whole_dur=14.000000,atrim=duration=14.000000,asetpts=PTS-STARTPTS,asetnsamples=n=128:p=0,volume='if(lt(t,1.000000),pow(10,(-28.000000000+7.000000000*(t-0.000000))/20),if(lt(t,9.000000),0.089125094,if(lt(t,12.500000),pow(10,(-21.000000000+-1.714285714*(t-9.000000))/20),if(lt(t,14.000000),pow(10,(-27.000000000+-46.000000000*(t-12.500000))/20),0.000000000))))':eval=frame,adelay=89000:all=1[frozen_hall_out];[crowd_murmur_out][hall_room_out][frozen_hall_out]amix=inputs=3:normalize=0:dropout_transition=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,apad=whole_dur=103.000000,atrim=duration=103.000000[out]" -map "[out]" -t 103.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/ambience.wav
+
+## [9] peak:ambience
+ffmpeg -hide_banner -nostdin -i output/ambience.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [10] stem:voices
+ffmpeg -hide_banner -nostdin -y -f lavfi -i anullsrc=r=48000:cl=stereo -t 103.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/voices.wav
+
+## [11] peak:voices
+ffmpeg -hide_banner -nostdin -i output/voices.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [12] stem:sfx
+ffmpeg -hide_banner -nostdin -y -i assets/ambience/crowd_suspicious_whispers.wav -i assets/ambience/metal_restraint_click.wav -i assets/ambience/auction_gavel.wav -i assets/ambience/crowd_gasp.wav -filter_complex "[0:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[crowd_suspicious_whispers_c0];[crowd_suspicious_whispers_c0]apad=whole_dur=9.000000,atrim=duration=9.000000,asetpts=PTS-STARTPTS,asetnsamples=n=128:p=0,volume='if(lt(t,4.500000),pow(10,(-8.180000000+1.333333333*(t-0.000000))/20),if(lt(t,6.500000),0.778036551,if(lt(t,8.850000),pow(10,(-2.180000000+-5.106382979*(t-6.500000))/20),if(lt(t,9.000000),pow(10,(-14.180000000+-400.000000000*(t-8.850000))/20),0.000195434))))':eval=frame,adelay=20000:all=1[crowd_suspicious_whispers_out];[1:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[metal_restraint_click_c0];[metal_restraint_click_c0]apad=whole_dur=1.200000,atrim=duration=1.200000,asetpts=PTS-STARTPTS,volume=0.084333476,adelay=39300:all=1[metal_restraint_click_out];[2:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[auction_gavel_c0];[auction_gavel_c0]apad=whole_dur=1.680000,atrim=duration=1.680000,asetpts=PTS-STARTPTS,volume=1.072753648,adelay=40500:all=1[auction_gavel_out];[3:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[crowd_gasp_c0];[crowd_gasp_c0]apad=whole_dur=1.880000,atrim=duration=1.880000,asetpts=PTS-STARTPTS,volume=0.074131024,adelay=56800:all=1[crowd_gasp_out];[crowd_suspicious_whispers_out][metal_restraint_click_out][auction_gavel_out][crowd_gasp_out]amix=inputs=4:normalize=0:dropout_transition=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,apad=whole_dur=103.000000,atrim=duration=103.000000[out]" -map "[out]" -t 103.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/sfx.wav
+
+## [13] peak:sfx
+ffmpeg -hide_banner -nostdin -i output/sfx.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [14] stem:music
+ffmpeg -hide_banner -nostdin -y -f lavfi -i anullsrc=r=48000:cl=stereo -t 103.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/music.wav
+
+## [15] peak:music
+ffmpeg -hide_banner -nostdin -i output/music.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [16] premaster
+ffmpeg -hide_banner -nostdin -y -i output/ambience.wav -i output/voices.wav -i output/sfx.wav -i output/music.wav -filter_complex "[0:a][1:a][2:a][3:a]amix=inputs=4:normalize=0:dropout_transition=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,atrim=duration=103.000000,asetpts=PTS-STARTPTS[out]" -map "[out]" -t 103.000000 -ar 48000 -ac 2 -c:a pcm_f32le output/_premaster.wav
+
+## [17] loudnorm:analyze
+ffmpeg -hide_banner -nostdin -i output/_premaster.wav -af loudnorm=I=-16.0:TP=-1.5:LRA=11.0:print_format=json -f null -
+
+## [18] master
+ffmpeg -hide_banner -nostdin -y -i output/_premaster.wav -af loudnorm=I=-18.590000:TP=-1.800000:LRA=28.300000:measured_I=-31.890000:measured_LRA=26.300000:measured_TP=-15.600000:measured_thresh=-49.960000:offset=0.530000:linear=true:print_format=json,aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,alimiter=limit=0.812831:level=disabled -t 103.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/master.wav
+
+## [19] loudnorm:verify
+ffmpeg -hide_banner -nostdin -i output/master.wav -af loudnorm=I=-16.0:TP=-1.5:LRA=11.0:print_format=json -f null -
+
+## [20] peak:master
+ffmpeg -hide_banner -nostdin -i output/master.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -

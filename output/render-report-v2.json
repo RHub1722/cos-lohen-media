@@ -1,0 +1,1520 @@
+{
+  "generated_at": "2026-07-29T21:07:08Z",
+  "project_root": "audio-project",
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "ffmpeg": "ffmpeg version 8.1.1-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "scenario": {
+    "file": "scenario/timeline.json",
+    "total_duration_seconds": 103.0,
+    "total_duration_timecode": "01:43.000",
+    "stems": [
+      "ambience",
+      "voices",
+      "sfx",
+      "music"
+    ]
+  },
+  "options": {
+    "normalize": true,
+    "output_suffix": "v2",
+    "mp3": true,
+    "verbose": false,
+    "keep_intermediate": false
+  },
+  "output": {
+    "sample_rate": 48000,
+    "channels": 2,
+    "bit_depth": 24,
+    "codec": "pcm_s24le",
+    "target_lufs": -16.0,
+    "target_true_peak_db": -1.5,
+    "true_peak_margin_db": 0.3,
+    "max_normalize_gain_db": 14.0
+  },
+  "master": {
+    "file": "output/master_v2.wav",
+    "duration_seconds": 103.0,
+    "sample_rate": 48000,
+    "channels": 2,
+    "codec": "pcm_s24le",
+    "peak_dbfs": -2.33,
+    "mp3": "output/master_v2.mp3"
+  },
+  "loudness": {
+    "normalization_applied": true,
+    "target_lufs": -16.0,
+    "effective_target_lufs": -18.37,
+    "requested_gain_db": 10.9,
+    "applied_gain_db": 8.53,
+    "gain_capped": true,
+    "cap_reason": "preserve_dynamics",
+    "normalization_type": "linear",
+    "max_linear_gain_db": 8.53,
+    "measured_before": {
+      "integrated_lufs": -26.9,
+      "true_peak_db": -10.83,
+      "lra_lu": 18.6,
+      "threshold_lufs": -42.87
+    },
+    "measured_after": {
+      "integrated_lufs": -18.37,
+      "true_peak_db": -2.3,
+      "lra_lu": 18.5,
+      "threshold_lufs": -34.94
+    }
+  },
+  "ducking": {
+    "attack_seconds": 0.08,
+    "release_seconds": 0.3,
+    "depth_db": {
+      "ambience": 6.0,
+      "crowd": 8.0,
+      "ice": 5.0,
+      "music": 7.0
+    },
+    "voice_windows": [],
+    "accent_windows": [
+      {
+        "group": "ambience",
+        "source": "combat_gunshot",
+        "start": "01:04.050",
+        "end": "01:04.500",
+        "depth_db": 2.5
+      },
+      {
+        "group": "ambience",
+        "source": "ice_final_impact",
+        "start": "01:37.350",
+        "end": "01:37.700",
+        "depth_db": 3.0
+      },
+      {
+        "group": "crowd",
+        "source": "combat_gunshot",
+        "start": "01:04.050",
+        "end": "01:04.500",
+        "depth_db": 2.5
+      },
+      {
+        "group": "crowd",
+        "source": "ice_final_impact",
+        "start": "01:37.350",
+        "end": "01:37.700",
+        "depth_db": 3.0
+      },
+      {
+        "group": "ice",
+        "source": "ice_final_impact",
+        "start": "01:37.350",
+        "end": "01:37.700",
+        "depth_db": 3.0
+      }
+    ],
+    "method": "предрасчитанная volume-автоматизация по таймкодам (без sidechaincompress)"
+  },
+  "looping": {
+    "crossfade_seconds": 0.4,
+    "curve": "qsin",
+    "method": "equal-power acrossfade между копиями файла"
+  },
+  "transition": {
+    "fade_end": "01:28.850",
+    "gap_ms": 150,
+    "ice_event_id": "frozen_hall",
+    "note": "Зал и толпа затухают к 01:28.850, затем 150 мс тишины, и в 01:29.000 вступает замороженный зал."
+  },
+  "stems": [
+    {
+      "name": "ambience",
+      "file": "output/ambience_v2.wav",
+      "silent": false,
+      "duration_seconds": 103.0,
+      "peak_dbfs": -21.0,
+      "events": [
+        "hall_room",
+        "crowd_murmur",
+        "frozen_hall",
+        "crowd_suspicious_whispers",
+        "crowd_panic",
+        "crowd_fleeing"
+      ],
+      "skipped_events": []
+    },
+    {
+      "name": "voices",
+      "file": "output/voices_v2.wav",
+      "silent": true,
+      "duration_seconds": 103.0,
+      "peak_dbfs": null,
+      "events": [],
+      "skipped_events": [
+        "auctioneer_intro",
+        "buyer_suspicious",
+        "lohen_notice",
+        "auctioneer_sold",
+        "lohen_reveal",
+        "lohen_final_question",
+        "lohen_final_line"
+      ]
+    },
+    {
+      "name": "sfx",
+      "file": "output/sfx_v2.wav",
+      "silent": false,
+      "duration_seconds": 103.0,
+      "peak_dbfs": -11.02,
+      "events": [
+        "metal_restraint_click",
+        "auction_gavel",
+        "crowd_gasp",
+        "combat_whoosh_1",
+        "combat_staff_1",
+        "combat_whoosh_2",
+        "combat_armor_1",
+        "combat_gunshot",
+        "combat_bullet",
+        "combat_whoosh_3",
+        "combat_staff_2",
+        "combat_whoosh_4",
+        "combat_armor_2",
+        "combat_whoosh_5",
+        "combat_staff_3",
+        "combat_whoosh_6",
+        "combat_armor_3",
+        "freeze_spreading",
+        "ice_final_impact",
+        "ice_resonance_tail"
+      ],
+      "skipped_events": []
+    },
+    {
+      "name": "music",
+      "file": "output/music_v2.wav",
+      "silent": true,
+      "duration_seconds": 103.0,
+      "peak_dbfs": null,
+      "events": [],
+      "skipped_events": []
+    }
+  ],
+  "events": [
+    {
+      "id": "crowd_murmur",
+      "stem": "ambience",
+      "file": "assets/ambience/auction_crowd_murmur.wav",
+      "start": "00:00.000",
+      "end": "01:28.850",
+      "duration_seconds": 88.85,
+      "source_duration_seconds": 30.0,
+      "looped": true,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": "crowd",
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -26.35,
+        "normalize_source": false,
+        "source_compensation_db": 0.0,
+        "max_envelope_db": -25.0,
+        "expected_peak_dbfs": -51.35
+      },
+      "envelope_db": [
+        {
+          "t": "00:00.000",
+          "db": -28.0
+        },
+        {
+          "t": "00:20.000",
+          "db": -30.0
+        },
+        {
+          "t": "00:29.000",
+          "db": -34.0
+        },
+        {
+          "t": "00:40.000",
+          "db": -27.0
+        },
+        {
+          "t": "00:48.000",
+          "db": -31.0
+        },
+        {
+          "t": "00:57.000",
+          "db": -25.0
+        },
+        {
+          "t": "01:04.050",
+          "db": -28.37
+        },
+        {
+          "t": "01:04.130",
+          "db": -30.91
+        },
+        {
+          "t": "01:04.500",
+          "db": -31.09
+        },
+        {
+          "t": "01:04.800",
+          "db": -28.73
+        },
+        {
+          "t": "01:20.000",
+          "db": -36.0
+        },
+        {
+          "t": "01:28.500",
+          "db": -36.0
+        },
+        {
+          "t": "01:28.850",
+          "db": -96.0
+        }
+      ],
+      "note": "Гул толпы. Файл может отсутствовать — тогда событие пропускается с предупреждением. Под голосами приглушается на 8 dB."
+    },
+    {
+      "id": "hall_room",
+      "stem": "ambience",
+      "file": "assets/ambience/auction_hall_room.wav",
+      "start": "00:00.000",
+      "end": "01:28.850",
+      "duration_seconds": 88.85,
+      "source_duration_seconds": 30.0,
+      "looped": true,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": "ambience",
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -17.46,
+        "normalize_source": false,
+        "source_compensation_db": 0.0,
+        "max_envelope_db": -22.0,
+        "expected_peak_dbfs": -39.46
+      },
+      "envelope_db": [
+        {
+          "t": "00:00.000",
+          "db": -25.0
+        },
+        {
+          "t": "00:57.000",
+          "db": -25.0
+        },
+        {
+          "t": "01:04.050",
+          "db": -23.37
+        },
+        {
+          "t": "01:04.130",
+          "db": -25.85
+        },
+        {
+          "t": "01:04.500",
+          "db": -25.77
+        },
+        {
+          "t": "01:04.800",
+          "db": -23.2
+        },
+        {
+          "t": "01:10.000",
+          "db": -22.0
+        },
+        {
+          "t": "01:20.000",
+          "db": -26.0
+        },
+        {
+          "t": "01:28.350",
+          "db": -30.0
+        },
+        {
+          "t": "01:28.850",
+          "db": -96.0
+        }
+      ],
+      "note": "Акустика зала. Зацикливается equal-power кроссфейдом, под голосами приглушается на 6 dB."
+    },
+    {
+      "id": "crowd_suspicious_whispers",
+      "stem": "ambience",
+      "file": "assets/ambience/crowd_suspicious_whispers.wav",
+      "start": "00:20.000",
+      "end": "00:29.000",
+      "duration_seconds": 9.0,
+      "source_duration_seconds": 9.8,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": "crowd",
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -31.42,
+        "normalize_source": true,
+        "source_compensation_db": 21.82,
+        "max_envelope_db": -24.0,
+        "expected_peak_dbfs": -33.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:20.000",
+          "db": -30.0
+        },
+        {
+          "t": "00:24.500",
+          "db": -24.0
+        },
+        {
+          "t": "00:26.500",
+          "db": -24.0
+        },
+        {
+          "t": "00:28.850",
+          "db": -36.0
+        },
+        {
+          "t": "00:29.000",
+          "db": -96.0
+        }
+      ],
+      "note": "Шёпот в толпе. Стем ambience: это реакция толпы, а не удар. Исходник тихий (пик -31.4 dBFS), поэтому normalize_source=true: значения ниже читаются как абсолютный уровень плюс общий запас mix.absolute_headroom_db, максимум выходит на -33.6 dBFS. Перед репликой Лоэна уходит до -36 dB, последние 150 мс — фейд в тишину, чтобы не было щелчка на обрезке."
+    },
+    {
+      "id": "metal_restraint_click",
+      "stem": "sfx",
+      "file": "assets/ambience/metal_restraint_click.wav",
+      "start": "00:39.300",
+      "end": "00:40.500",
+      "duration_seconds": 1.2,
+      "source_duration_seconds": 1.2,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -0.12,
+        "normalize_source": true,
+        "source_compensation_db": -9.48,
+        "max_envelope_db": -12.0,
+        "expected_peak_dbfs": -21.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:39.300",
+          "db": -12.0
+        },
+        {
+          "t": "00:40.500",
+          "db": -12.0
+        }
+      ],
+      "note": "Щелчок оков. normalize_source=true: -12.0 читается как абсолютный уровень (с общим запасом mix.absolute_headroom_db)."
+    },
+    {
+      "id": "auction_gavel",
+      "stem": "sfx",
+      "file": "assets/ambience/auction_gavel.wav",
+      "start": "00:40.500",
+      "end": "00:42.180",
+      "duration_seconds": 1.68,
+      "source_duration_seconds": 1.68,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -16.21,
+        "normalize_source": true,
+        "source_compensation_db": 6.61,
+        "max_envelope_db": -6.0,
+        "expected_peak_dbfs": -15.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:40.500",
+          "db": -6.0
+        },
+        {
+          "t": "00:42.180",
+          "db": -6.0
+        }
+      ],
+      "note": "Удар молотка. Исходник тихий (пик -16.2 dBFS), поэтому normalize_source=true: -6.0 читается как абсолютный уровень плюс общий запас mix.absolute_headroom_db, то есть -15.6 dBFS. Это самое громкое событие дорожки, и после нормализации master оно выходит на потолок, не будучи расплющенным лимитером."
+    },
+    {
+      "id": "crowd_gasp",
+      "stem": "sfx",
+      "file": "assets/ambience/crowd_gasp.wav",
+      "start": "00:56.800",
+      "end": "00:58.680",
+      "duration_seconds": 1.88,
+      "source_duration_seconds": 1.88,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -13.0,
+        "expected_peak_dbfs": -22.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:56.800",
+          "db": -13.0
+        },
+        {
+          "t": "00:58.680",
+          "db": -13.0
+        }
+      ],
+      "note": "Вздох толпы. Однократно, loop=false. normalize_source=true: -13.0 читается как абсолютный уровень (с общим запасом mix.absolute_headroom_db)."
+    },
+    {
+      "id": "crowd_panic",
+      "stem": "ambience",
+      "file": "assets/crowd/crowd_panic_rise.wav",
+      "start": "00:57.100",
+      "end": "01:03.980",
+      "duration_seconds": 6.88,
+      "source_duration_seconds": 6.88,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": 100,
+      "fade_out_ms": 250,
+      "trimmed_silence_ms": null,
+      "stereo_width": 1.3,
+      "duck_group": "crowd",
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -0.03,
+        "normalize_source": true,
+        "source_compensation_db": -9.57,
+        "max_envelope_db": -18.0,
+        "expected_peak_dbfs": -27.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:57.100",
+          "db": -18.0
+        },
+        {
+          "t": "01:03.980",
+          "db": -18.0
+        }
+      ],
+      "note": "Паника толпы. Играет свою натуральную длину 6.88 с и не обрезается: развитие паники должно дойти до конца. Держится на -18 dB, то есть заметно позади ударов (-4.5..-8), как требует иерархия. trim_silence отключён намеренно."
+    },
+    {
+      "id": "combat_whoosh_1",
+      "stem": "sfx",
+      "file": "assets/combat/spear_whoosh_fast.wav",
+      "start": "00:58.500",
+      "end": "00:59.690",
+      "duration_seconds": 1.19,
+      "source_duration_seconds": 1.2,
+      "looped": false,
+      "pan": -0.15,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": {
+        "start": 0,
+        "end": 10
+      },
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -10.0,
+        "expected_peak_dbfs": -19.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:58.500",
+          "db": -10.0
+        },
+        {
+          "t": "00:59.690",
+          "db": -10.0
+        }
+      ],
+      "note": "Первый взмах, слегка слева."
+    },
+    {
+      "id": "combat_staff_1",
+      "stem": "sfx",
+      "file": "assets/combat/spear_staff_impact.wav",
+      "start": "00:58.850",
+      "end": "00:59.850",
+      "duration_seconds": 1.0,
+      "source_duration_seconds": 1.0,
+      "looped": false,
+      "pan": 0.1,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -7.0,
+        "expected_peak_dbfs": -16.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:58.850",
+          "db": -7.0
+        },
+        {
+          "t": "00:59.850",
+          "db": -7.0
+        }
+      ],
+      "note": "Удар по древку. После него оставлен промежуток до следующей связки."
+    },
+    {
+      "id": "combat_whoosh_2",
+      "stem": "sfx",
+      "file": "assets/combat/spear_whoosh_heavy.wav",
+      "start": "01:01.200",
+      "end": "01:02.670",
+      "duration_seconds": 1.47,
+      "source_duration_seconds": 1.48,
+      "looped": false,
+      "pan": 0.2,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": {
+        "start": 0,
+        "end": 10
+      },
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -8.0,
+        "expected_peak_dbfs": -17.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:01.200",
+          "db": -8.0
+        },
+        {
+          "t": "01:02.670",
+          "db": -8.0
+        }
+      ],
+      "note": "Тяжёлый взмах, от центра вправо. Дополнительный удар не добавляется."
+    },
+    {
+      "id": "combat_armor_1",
+      "stem": "sfx",
+      "file": "assets/combat/spear_armor_impact.wav",
+      "start": "01:01.850",
+      "end": "01:02.650",
+      "duration_seconds": 0.8,
+      "source_duration_seconds": 0.8,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -5.0,
+        "expected_peak_dbfs": -14.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:01.850",
+          "db": -5.0
+        },
+        {
+          "t": "01:02.650",
+          "db": -5.0
+        }
+      ],
+      "note": "Удар по броне. Огибающая исходника — чистое затухание -8/-6/-12/-23/-28/-40/-49/-57 dB по 100 мс, затянутого участка, характерного для крика, нет."
+    },
+    {
+      "id": "combat_gunshot",
+      "stem": "sfx",
+      "file": "assets/combat/indoor_gunshot.wav",
+      "start": "01:04.200",
+      "end": "01:06.200",
+      "duration_seconds": 2.0,
+      "source_duration_seconds": 2.0,
+      "looped": false,
+      "pan": 0.35,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": {
+        "groups": [
+          "ambience",
+          "crowd"
+        ],
+        "depth_db": 2.5,
+        "pre_ms": 150,
+        "hold_ms": 300
+      },
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -8.0,
+        "expected_peak_dbfs": -17.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:04.200",
+          "db": -8.0
+        },
+        {
+          "t": "01:06.200",
+          "db": -8.0
+        }
+      ],
+      "note": "Выстрел в помещении. Приглушает фон и толпу на 2.5 dB в окне примерно 300 мс вокруг себя, чтобы читался отчётливо. Окно задано явно, а не длиной файла: у выстрела длинный реверб-хвост, и держать фон приглушённым все 2 с не нужно."
+    },
+    {
+      "id": "combat_bullet",
+      "stem": "sfx",
+      "file": "assets/combat/bullet_pass_close.wav",
+      "start": "01:04.350",
+      "end": "01:05.350",
+      "duration_seconds": 1.0,
+      "source_duration_seconds": 1.0,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": [
+        {
+          "t": "01:04.350",
+          "pan": 0.4
+        },
+        {
+          "t": "01:05.350",
+          "pan": -0.4
+        }
+      ],
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -9.0,
+        "expected_peak_dbfs": -18.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:04.350",
+          "db": -9.0
+        },
+        {
+          "t": "01:05.350",
+          "db": -9.0
+        }
+      ],
+      "note": "Пролёт пули. В исходнике уже записано собственное движение панорамы, но слева направо: замер даёт R-L от -2 dB к +25 dB. Автоматизация баланса даёт всего +-4.4 dB и перебить встроенный образ не может, поэтому каналы меняются местами — тогда встроенное движение идёт справа налево, как требует сценарий, и совпадает по направлению с pan_points. Второй выстрел не добавляется."
+    },
+    {
+      "id": "combat_whoosh_3",
+      "stem": "sfx",
+      "file": "assets/combat/spear_whoosh_fast.wav",
+      "start": "01:07.000",
+      "end": "01:08.190",
+      "duration_seconds": 1.19,
+      "source_duration_seconds": 1.2,
+      "looped": false,
+      "pan": 0.25,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": {
+        "start": 0,
+        "end": 10
+      },
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -10.0,
+        "expected_peak_dbfs": -19.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:07.000",
+          "db": -10.0
+        },
+        {
+          "t": "01:08.190",
+          "db": -10.0
+        }
+      ],
+      "note": "Взмах справа."
+    },
+    {
+      "id": "combat_staff_2",
+      "stem": "sfx",
+      "file": "assets/combat/spear_staff_impact.wav",
+      "start": "01:07.300",
+      "end": "01:08.300",
+      "duration_seconds": 1.0,
+      "source_duration_seconds": 1.0,
+      "looped": false,
+      "pan": -0.25,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -7.0,
+        "expected_peak_dbfs": -16.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:07.300",
+          "db": -7.0
+        },
+        {
+          "t": "01:08.300",
+          "db": -7.0
+        }
+      ],
+      "note": "Удар по древку слева."
+    },
+    {
+      "id": "combat_whoosh_4",
+      "stem": "sfx",
+      "file": "assets/combat/spear_whoosh_heavy.wav",
+      "start": "01:10.000",
+      "end": "01:11.470",
+      "duration_seconds": 1.47,
+      "source_duration_seconds": 1.48,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": {
+        "start": 0,
+        "end": 10
+      },
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -8.0,
+        "expected_peak_dbfs": -17.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:10.000",
+          "db": -8.0
+        },
+        {
+          "t": "01:11.470",
+          "db": -8.0
+        }
+      ],
+      "note": "Тяжёлый взмах по центру."
+    },
+    {
+      "id": "combat_armor_2",
+      "stem": "sfx",
+      "file": "assets/combat/spear_armor_impact.wav",
+      "start": "01:10.650",
+      "end": "01:11.450",
+      "duration_seconds": 0.8,
+      "source_duration_seconds": 0.8,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -5.0,
+        "expected_peak_dbfs": -14.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:10.650",
+          "db": -5.0
+        },
+        {
+          "t": "01:11.450",
+          "db": -5.0
+        }
+      ],
+      "note": "Самый сильный удар внутри этой связки."
+    },
+    {
+      "id": "crowd_fleeing",
+      "stem": "ambience",
+      "file": "assets/crowd/crowd_fleeing_distant.wav",
+      "start": "01:12.000",
+      "end": "01:20.000",
+      "duration_seconds": 8.0,
+      "source_duration_seconds": 6.0,
+      "looped": true,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": 50,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": {
+        "start": 130,
+        "end": 1000
+      },
+      "stereo_width": 1.3,
+      "duck_group": "crowd",
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -0.24,
+        "normalize_source": true,
+        "source_compensation_db": -9.36,
+        "max_envelope_db": -21.0,
+        "expected_peak_dbfs": -30.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:12.000",
+          "db": -21.0
+        },
+        {
+          "t": "01:16.000",
+          "db": -24.0
+        },
+        {
+          "t": "01:19.000",
+          "db": -27.0
+        },
+        {
+          "t": "01:20.000",
+          "db": -96.0
+        }
+      ],
+      "note": "Убегающая толпа. В исходнике 128 мс тишины в начале и 991 мс в конце — обрезаются, иначе звук вступал бы с задержкой. Окно до 01:20 закрыто зацикливанием с кроссфейдом. Огибающая уводит звук вдаль и к 01:20 гасит его полностью: резкое окончание боя перед финальной репликой."
+    },
+    {
+      "id": "combat_whoosh_5",
+      "stem": "sfx",
+      "file": "assets/combat/spear_whoosh_fast.wav",
+      "start": "01:15.200",
+      "end": "01:16.390",
+      "duration_seconds": 1.19,
+      "source_duration_seconds": 1.2,
+      "looped": false,
+      "pan": -0.25,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": {
+        "start": 0,
+        "end": 10
+      },
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -10.0,
+        "expected_peak_dbfs": -19.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:15.200",
+          "db": -10.0
+        },
+        {
+          "t": "01:16.390",
+          "db": -10.0
+        }
+      ],
+      "note": "Взмах слева."
+    },
+    {
+      "id": "combat_staff_3",
+      "stem": "sfx",
+      "file": "assets/combat/spear_staff_impact.wav",
+      "start": "01:15.550",
+      "end": "01:16.550",
+      "duration_seconds": 1.0,
+      "source_duration_seconds": 1.0,
+      "looped": false,
+      "pan": 0.25,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -8.0,
+        "expected_peak_dbfs": -17.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:15.550",
+          "db": -8.0
+        },
+        {
+          "t": "01:16.550",
+          "db": -8.0
+        }
+      ],
+      "note": "Удар по древку справа."
+    },
+    {
+      "id": "combat_whoosh_6",
+      "stem": "sfx",
+      "file": "assets/combat/spear_whoosh_heavy.wav",
+      "start": "01:18.000",
+      "end": "01:19.470",
+      "duration_seconds": 1.47,
+      "source_duration_seconds": 1.48,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": {
+        "start": 0,
+        "end": 10
+      },
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -7.0,
+        "expected_peak_dbfs": -16.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:18.000",
+          "db": -7.0
+        },
+        {
+          "t": "01:19.470",
+          "db": -7.0
+        }
+      ],
+      "note": "Последний боевой взмах, по центру."
+    },
+    {
+      "id": "combat_armor_3",
+      "stem": "sfx",
+      "file": "assets/combat/spear_armor_impact.wav",
+      "start": "01:18.650",
+      "end": "01:19.450",
+      "duration_seconds": 0.8,
+      "source_duration_seconds": 0.8,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": 15,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -4.5,
+        "expected_peak_dbfs": -14.1
+      },
+      "envelope_db": [
+        {
+          "t": "01:18.650",
+          "db": -4.5
+        },
+        {
+          "t": "01:19.450",
+          "db": -4.5
+        }
+      ],
+      "note": "Завершающий удар боя. Сразу после него толпа гасится огибающей crowd_fleeing. Ледяные эффекты здесь не используются."
+    },
+    {
+      "id": "frozen_hall",
+      "stem": "ambience",
+      "file": "assets/ambience/frozen_hall_ambience.wav",
+      "start": "01:29.000",
+      "end": "01:43.000",
+      "duration_seconds": 14.0,
+      "source_duration_seconds": 25.28,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": "ambience",
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": false,
+        "source_compensation_db": 0.0,
+        "max_envelope_db": -21.0,
+        "expected_peak_dbfs": -21.0
+      },
+      "envelope_db": [
+        {
+          "t": "01:29.000",
+          "db": -28.0
+        },
+        {
+          "t": "01:30.000",
+          "db": -21.0
+        },
+        {
+          "t": "01:37.350",
+          "db": -21.0
+        },
+        {
+          "t": "01:37.430",
+          "db": -24.0
+        },
+        {
+          "t": "01:37.700",
+          "db": -24.0
+        },
+        {
+          "t": "01:38.000",
+          "db": -21.0
+        },
+        {
+          "t": "01:41.500",
+          "db": -27.0
+        },
+        {
+          "t": "01:43.000",
+          "db": -96.0
+        }
+      ],
+      "note": "Замороженный зал. Файл длиннее окна — обрезается; если подставить более короткий, будет зациклен мягким кроссфейдом."
+    },
+    {
+      "id": "freeze_spreading",
+      "stem": "sfx",
+      "file": "assets/ice/freeze_spreading.wav",
+      "start": "01:29.050",
+      "end": "01:33.880",
+      "duration_seconds": 4.83,
+      "source_duration_seconds": 5.0,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": 75,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": {
+        "start": 10,
+        "end": 160
+      },
+      "stereo_width": null,
+      "duck_group": "ice",
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -11.0,
+        "expected_peak_dbfs": -20.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:29.050",
+          "db": -20.0
+        },
+        {
+          "t": "01:31.000",
+          "db": -11.0
+        },
+        {
+          "t": "01:33.000",
+          "db": -11.0
+        },
+        {
+          "t": "01:33.800",
+          "db": -18.0
+        },
+        {
+          "t": "01:33.880",
+          "db": -18.0
+        }
+      ],
+      "note": "Расползание льда, вступает через 50 мс после замороженного зала. Стем sfx: §12 относит «распространение льда» к sfx_v2. Огибающая усиливает эффект. Группа приглушения ice с глубиной 5 dB: под репликой Лоэна эффект уходит вниз и не перекрывает голос."
+    },
+    {
+      "id": "ice_final_impact",
+      "stem": "sfx",
+      "file": "assets/ice/ice_final_impact.wav",
+      "start": "01:37.500",
+      "end": "01:40.500",
+      "duration_seconds": 3.0,
+      "source_duration_seconds": 3.0,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": 5,
+      "fade_out_ms": 20,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": {
+        "groups": [
+          "ambience",
+          "crowd",
+          "ice"
+        ],
+        "depth_db": 3.0,
+        "pre_ms": 150,
+        "hold_ms": 200
+      },
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -4.0,
+        "expected_peak_dbfs": -13.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:37.500",
+          "db": -4.0
+        },
+        {
+          "t": "01:40.500",
+          "db": -4.0
+        }
+      ],
+      "note": "Главный акцент финала, самое громкое событие дорожки. Расчищает фон на 3 dB за 150 мс до удара. True Peak мастера всё равно ограничен -1.5 dBTP на этапе нормализации."
+    },
+    {
+      "id": "ice_resonance_tail",
+      "stem": "sfx",
+      "file": "assets/ice/ice_resonance_tail.wav",
+      "start": "01:37.700",
+      "end": "01:43.000",
+      "duration_seconds": 5.3,
+      "source_duration_seconds": 5.48,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": 10,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": {
+        "start": 20,
+        "end": 0
+      },
+      "stereo_width": 1.3,
+      "duck_group": "ice",
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": 0.0,
+        "normalize_source": true,
+        "source_compensation_db": -9.6,
+        "max_envelope_db": -13.0,
+        "expected_peak_dbfs": -22.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:37.700",
+          "db": -16.0
+        },
+        {
+          "t": "01:38.000",
+          "db": -13.0
+        },
+        {
+          "t": "01:40.500",
+          "db": -13.0
+        },
+        {
+          "t": "01:42.000",
+          "db": -19.0
+        },
+        {
+          "t": "01:43.000",
+          "db": -96.0
+        }
+      ],
+      "note": "Резонансный хвост сразу за ударом. Стем sfx: §12 относит «ледяной хвост» к sfx_v2. В исходнике тишины в конце нет — хвост идёт до последнего сэмпла, поэтому обрезается только 12 мс в начале. К 01:43.000 огибающая уводит его в полную тишину."
+    }
+  ],
+  "missing_optional_assets": [
+    {
+      "id": "auctioneer_intro",
+      "stem": "voices",
+      "file": "assets/voices/auctioneer_intro.wav",
+      "expected_start": "00:00.000",
+      "reason": "файл не найден"
+    },
+    {
+      "id": "buyer_suspicious",
+      "stem": "voices",
+      "file": "assets/voices/buyer_suspicious.wav",
+      "expected_start": "00:20.000",
+      "reason": "файл не найден"
+    },
+    {
+      "id": "lohen_notice",
+      "stem": "voices",
+      "file": "assets/voices/lohen_notice.wav",
+      "expected_start": "00:29.000",
+      "reason": "файл не найден"
+    },
+    {
+      "id": "auctioneer_sold",
+      "stem": "voices",
+      "file": "assets/voices/auctioneer_sold.wav",
+      "expected_start": "00:40.000",
+      "reason": "файл не найден"
+    },
+    {
+      "id": "lohen_reveal",
+      "stem": "voices",
+      "file": "assets/voices/lohen_reveal.wav",
+      "expected_start": "00:48.000",
+      "reason": "файл не найден"
+    },
+    {
+      "id": "lohen_final_question",
+      "stem": "voices",
+      "file": "assets/voices/lohen_final_question.wav",
+      "expected_start": "01:20.000",
+      "reason": "файл не найден"
+    },
+    {
+      "id": "lohen_final_line",
+      "stem": "voices",
+      "file": "assets/voices/lohen_final_line.wav",
+      "expected_start": "01:29.000",
+      "reason": "файл не найден"
+    }
+  ],
+  "suspicious_assets": [
+    {
+      "id": "crowd_gasp",
+      "file": "assets/ambience/crowd_gasp.wav",
+      "start": "00:56.800",
+      "reasons": [
+        "исходник сведён в пик +0.00 dBFS — запаса в файле нет, уровень задаётся только сценарием"
+      ]
+    },
+    {
+      "id": "crowd_panic",
+      "file": "assets/crowd/crowd_panic_rise.wav",
+      "start": "00:57.100",
+      "reasons": [
+        "исходник сведён в пик -0.03 dBFS — запаса в файле нет, уровень задаётся только сценарием"
+      ]
+    },
+    {
+      "id": "combat_whoosh_1",
+      "file": "assets/combat/spear_whoosh_fast.wav",
+      "start": "00:58.500",
+      "reasons": [
+        "исходник сведён в пик +0.00 dBFS — запаса в файле нет, уровень задаётся только сценарием"
+      ]
+    },
+    {
+      "id": "combat_staff_1",
+      "file": "assets/combat/spear_staff_impact.wav",
+      "start": "00:58.850",
+      "reasons": [
+        "исходник сведён в пик +0.00 dBFS — запаса в файле нет, уровень задаётся только сценарием"
+      ]
+    },
+    {
+      "id": "combat_whoosh_2",
+      "file": "assets/combat/spear_whoosh_heavy.wav",
+      "start": "01:01.200",
+      "reasons": [
+        "исходник сведён в пик +0.00 dBFS — запаса в файле нет, уровень задаётся только сценарием"
+      ]
+    },
+    {
+      "id": "combat_armor_1",
+      "file": "assets/combat/spear_armor_impact.wav",
+      "start": "01:01.850",
+      "reasons": [
+        "исходник сведён в пик +0.00 dBFS — запаса в файле нет, уровень задаётся только сценарием"
+      ]
+    },
+    {
+      "id": "combat_gunshot",
+      "file": "assets/combat/indoor_gunshot.wav",
+      "start": "01:04.200",
+      "reasons": [
+        "исходник сведён в пик +0.00 dBFS — запаса в файле нет, уровень задаётся только сценарием"
+      ]
+    },
+    {
+      "id": "combat_bullet",
+      "file": "assets/combat/bullet_pass_close.wav",
+      "start": "01:04.350",
+      "reasons": [
+        "исходник сведён в пик +0.00 dBFS — запаса в файле нет, уровень задаётся только сценарием"
+      ]
+    },
+    {
+      "id": "crowd_fleeing",
+      "file": "assets/crowd/crowd_fleeing_distant.wav",
+      "start": "01:12.000",
+      "reasons": [
+        "обрезана тишина по краям: 130 мс в начале, 1000 мс в конце"
+      ]
+    },
+    {
+      "id": "frozen_hall",
+      "file": "assets/ambience/frozen_hall_ambience.wav",
+      "start": "01:29.000",
+      "reasons": [
+        "исходник сведён в пик +0.00 dBFS — запаса в файле нет, уровень задаётся только сценарием"
+      ]
+    },
+    {
+      "id": "freeze_spreading",
+      "file": "assets/ice/freeze_spreading.wav",
+      "start": "01:29.050",
+      "reasons": [
+        "исходник сведён в пик +0.00 dBFS — запаса в файле нет, уровень задаётся только сценарием",
+        "обрезана тишина по краям: 10 мс в начале, 160 мс в конце"
+      ]
+    },
+    {
+      "id": "ice_final_impact",
+      "file": "assets/ice/ice_final_impact.wav",
+      "start": "01:37.500",
+      "reasons": [
+        "исходник сведён в пик +0.00 dBFS — запаса в файле нет, уровень задаётся только сценарием"
+      ]
+    },
+    {
+      "id": "ice_resonance_tail",
+      "file": "assets/ice/ice_resonance_tail.wav",
+      "start": "01:37.700",
+      "reasons": [
+        "исходник сведён в пик +0.00 dBFS — запаса в файле нет, уровень задаётся только сценарием"
+      ]
+    }
+  ],
+  "manual_check_note": "Автоматическое определение крика, голоса или музыки внутри эффекта не выполняется: надёжно отличить их от удара без прослушивания нельзя. По spear_armor_impact.wav замерена огибающая RMS по 100 мс — -8/-6/-12/-23/-28/-40/-49/-57 dB, то есть чистое монотонное затухание без затянутого участка, характерного для крика. Это косвенный признак, а не доказательство.",
+  "validation": {
+    "errors": [],
+    "warnings": [
+      "auctioneer_intro: необязательный файл assets/voices/auctioneer_intro.wav не найден — событие пропущено",
+      "buyer_suspicious: необязательный файл assets/voices/buyer_suspicious.wav не найден — событие пропущено",
+      "lohen_notice: необязательный файл assets/voices/lohen_notice.wav не найден — событие пропущено",
+      "auctioneer_sold: необязательный файл assets/voices/auctioneer_sold.wav не найден — событие пропущено",
+      "lohen_reveal: необязательный файл assets/voices/lohen_reveal.wav не найден — событие пропущено",
+      "lohen_final_question: необязательный файл assets/voices/lohen_final_question.wav не найден — событие пропущено",
+      "lohen_final_line: необязательный файл assets/voices/lohen_final_line.wav не найден — событие пропущено"
+    ]
+  },
+  "render_warnings": [
+    "auctioneer_intro (voices): пропущено — файл не найден [assets/voices/auctioneer_intro.wav]",
+    "buyer_suspicious (voices): пропущено — файл не найден [assets/voices/buyer_suspicious.wav]",
+    "lohen_notice (voices): пропущено — файл не найден [assets/voices/lohen_notice.wav]",
+    "auctioneer_sold (voices): пропущено — файл не найден [assets/voices/auctioneer_sold.wav]",
+    "lohen_reveal (voices): пропущено — файл не найден [assets/voices/lohen_reveal.wav]",
+    "lohen_final_question (voices): пропущено — файл не найден [assets/voices/lohen_final_question.wav]",
+    "lohen_final_line (voices): пропущено — файл не найден [assets/voices/lohen_final_line.wav]",
+    "preserve_dynamics=true: чтобы loudnorm остался линейным, прирост ограничен 8.5 dB (crest микса 16.1 dB) → фактическая громкость около -18.4 LUFS вместо -16.0 LUFS. Уровни сценария при этом сохраняются точно."
+  ],
+  "ffmpeg_command_count": 52
+}
