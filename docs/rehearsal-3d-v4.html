@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Лоэн — раскадровка номера 60 с (v4, объёмная)</title>
+<style>
+  :root { --bg:#0b0d12; --panel:#141822; --panel2:#101420; --line:#232936;
+          --ink:#eef1f6; --dim:#8b94a7; --gold:#d9a53b; --hot:#e8563f;
+          --cold:#6fb3d9; --hold:#5b6b86; --line-col:#63b58a; --mint:#93d3c0; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body { background:var(--bg); color:var(--ink); overflow:hidden;
+         font-family:"Segoe UI",system-ui,sans-serif;
+         display:flex; flex-direction:column; }
+
+  #nojs { background:#3a1512; color:#ffd9d3; padding:.7rem 1rem; font-size:.92rem;
+          border-bottom:1px solid var(--hot); }
+  #err { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50;
+         background:#3a1512; color:#ffd9d3; padding:.8rem 1.2rem; font-size:.9rem;
+         border-top:2px solid var(--hot); white-space:pre-wrap; }
+
+  header { display:flex; align-items:center; gap:1rem; padding:.55rem 1rem;
+           border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  #clock { font-size:clamp(1.2rem,2.6vw,1.8rem); font-variant-numeric:tabular-nums;
+           font-weight:600; letter-spacing:.01em; }
+  #blockName { color:var(--gold); text-transform:uppercase; letter-spacing:.05em;
+               font-size:clamp(.72rem,1.4vw,.92rem); font-weight:600; }
+  #sound { margin-left:auto; color:var(--dim); font-size:.85rem; max-width:32rem;
+           text-align:right; line-height:1.3; }
+  #sound b { color:var(--cold); font-weight:600; }
+  #ctl { display:flex; gap:.35rem; flex-wrap:wrap; }
+  #ctl button { background:var(--panel); border:1px solid var(--line); color:var(--dim);
+                border-radius:.35rem; padding:.35rem .7rem; cursor:pointer;
+                font-family:inherit; font-size:.88rem; }
+  #ctl button:hover { color:var(--ink); border-color:var(--gold); }
+  #ctl button.on { color:#1a1206; background:var(--gold); border-color:var(--gold);
+                   font-weight:600; }
+
+  #blocks { display:flex; gap:.4rem; padding:.5rem 1rem; border-bottom:1px solid var(--line);
+            flex-wrap:wrap; }
+  .blk { flex:1 1 8rem; text-align:left; background:var(--panel2); color:var(--dim);
+         border:1px solid var(--line); border-radius:.4rem; padding:.4rem .7rem;
+         cursor:pointer; font-family:inherit; line-height:1.25; }
+  .blk b { display:block; color:var(--ink); font-size:.95rem; font-weight:600; }
+  .blk span { font-size:.75rem; font-variant-numeric:tabular-nums; }
+  .blk:hover { border-color:var(--gold); }
+  .blk.on { border-color:var(--gold); background:#1d2130; }
+  .blk.on b { color:var(--gold); }
+
+  #main { flex:1; display:grid; grid-template-columns:1fr 23rem; min-height:0; }
+  #stage { position:relative; min-height:0; border-right:1px solid var(--line); }
+  canvas { display:block; width:100%; height:100%; cursor:grab; }
+  canvas:active { cursor:grabbing; }
+  #views { position:absolute; top:.6rem; right:.6rem; display:flex; gap:.35rem;
+           flex-wrap:wrap; justify-content:flex-end; max-width:20rem; }
+  #views button { background:#141822cc; border:1px solid var(--line); color:var(--dim);
+                  border-radius:.35rem; padding:.28rem .55rem; cursor:pointer;
+                  font-size:.82rem; font-family:inherit; }
+  #views button:hover, #views button.on { color:var(--gold); border-color:var(--gold); }
+  #hint { position:absolute; top:.6rem; left:.6rem; color:#5f6878; font-size:.76rem;
+          line-height:1.5; pointer-events:none; }
+
+  #caption { position:absolute; left:0; right:0; bottom:0; padding:.8rem 1rem 1rem;
+             background:linear-gradient(transparent,#0b0d12f2 45%); pointer-events:none; }
+  #badge { display:inline-block; font-size:.72rem; font-weight:700; letter-spacing:.08em;
+           border-radius:.25rem; padding:.15rem .45rem; color:#0b0d12; }
+  #capTitle { font-size:clamp(1rem,2vw,1.35rem); font-weight:600; margin:.35rem 0 .2rem; }
+  #capText { font-size:clamp(.82rem,1.5vw,.98rem); color:#c3cbd8; line-height:1.45;
+             max-width:52rem; }
+  #next { margin-top:.4rem; font-size:.8rem; color:var(--dim);
+          font-variant-numeric:tabular-nums; }
+
+  #side { display:flex; flex-direction:column; min-height:0; background:var(--panel2); }
+  #sideHead { padding:.5rem .8rem; border-bottom:1px solid var(--line); font-size:.8rem;
+              color:var(--dim); text-transform:uppercase; letter-spacing:.06em; }
+  #tr { flex:1; overflow-y:auto; padding:.3rem 0 6rem; }
+  .row { display:grid; grid-template-columns:4.4rem 1fr; gap:.5rem;
+         padding:.45rem .8rem; border-bottom:1px solid #1a1f2c; cursor:pointer; }
+  .row:hover { background:#171c28; }
+  .row.on { background:#1e2431; }
+  .row .tc { font-variant-numeric:tabular-nums; font-size:.78rem; color:var(--dim);
+             line-height:1.3; }
+  .row.on .tc { color:var(--gold); }
+  .row .k { font-size:.66rem; font-weight:700; letter-spacing:.06em; display:block;
+            margin-top:.18rem; }
+  .row .ti { font-size:.88rem; font-weight:600; color:#d6dce7; line-height:1.3; }
+  .row.on .ti { color:#fff; }
+  .row .tx { font-size:.78rem; color:#8d97a8; line-height:1.4; margin-top:.15rem; }
+  .row.on .tx { color:#b9c2d0; }
+  .row .sc { font-size:.75rem; color:#6f7b90; line-height:1.4; margin-top:.25rem;
+             border-left:2px solid #2a3244; padding-left:.45rem; }
+  .row.on .sc { color:var(--mint); border-left-color:#3d6f62; }
+  .row.past .ti, .row.past .tx, .row.past .sc { opacity:.5; }
+
+  #strip { height:26px; position:relative; background:#0e1219;
+           border-top:1px solid var(--line); cursor:pointer; }
+  #strip .seg { position:absolute; top:5px; height:9px; border-radius:2px; opacity:.75; }
+  #strip .bnd { position:absolute; top:0; bottom:0; width:1px; background:#39415a; }
+  #head { position:absolute; top:0; bottom:0; width:2px; background:#fff; }
+  #legend { display:flex; gap:.9rem; padding:.35rem 1rem .5rem; font-size:.74rem;
+            color:var(--dim); flex-wrap:wrap; border-top:1px solid var(--line); }
+  #legend i { display:inline-block; width:.7rem; height:.7rem; border-radius:2px;
+              margin-right:.28rem; vertical-align:-1px; }
+  #bar { height:6px; background:#1b2130; cursor:pointer; }
+  #fill { height:100%; background:var(--gold); width:0; }
+
+  #src, #spd { font-size:.75rem; padding:.22rem .5rem; border-radius:.3rem;
+         border:1px solid var(--line); color:var(--dim); white-space:nowrap;
+         font-variant-numeric:tabular-nums; }
+  #src.aud { color:#8fe3b6; border-color:#2f6b4c; background:#12241b; }
+  #spd.fast { color:#ffb9a8; border-color:#7d3527; background:#2b1613; font-weight:600; }
+  #warn { display:none; background:#3a2e12; color:#ffe9bd; padding:.7rem 1.2rem;
+          font-size:.9rem; line-height:1.45; border-bottom:1px solid var(--gold); }
+  #file { position:absolute; left:-9999px; width:1px; height:1px; }
+  body.dragging { outline:4px dashed var(--gold); outline-offset:-4px; }
+
+  @media (max-width:900px) {
+    #main { grid-template-columns:1fr; grid-template-rows:1fr 15rem; }
+    #stage { border-right:none; border-bottom:1px solid var(--line); }
+    #sound { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="nojs">Скрипт не выполняется. Откройте файл двойным щелчком в браузере
+  (Chrome, Edge, Firefox), а не в окне предпросмотра редактора.</div>
+<div id="warn"></div>
+<div id="err"></div>
+
+<header>
+  <div id="clock">00:00.00</div>
+  <div id="src">часы: внутренние · звук не загружен</div>
+  <div id="spd">острие 0.0 м/с</div>
+  <div id="blockName">—</div>
+  <div id="ctl">
+    <button id="play">Пуск</button>
+    <button id="slow">0.5x</button>
+    <button id="restart">С начала</button>
+    <button id="pick">Загрузить звук</button>
+    <button id="unload" style="display:none">Без звука</button>
+    <button id="cloth">Ткань</button>
+    <button id="idle">Идл выкл</button>
+    <button id="lbl">Подписи</button>
+    <button id="full">Экран</button>
+  </div>
+  <div id="sound">звучит: <b>—</b></div>
+</header>
+<input id="file" type="file" accept="audio/*,.wav,.mp3">
+<audio id="audio" preload="auto"></audio>
+
+<div id="blocks"></div>
+
+<div id="main">
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <div id="views">
+      <button data-v="0">1 Зритель</button>
+      <button data-v="1">2 3/4</button>
+      <button data-v="2">3 Сбоку</button>
+      <button data-v="3">4 Сверху</button>
+      <button data-v="4">5 Крупно</button>
+      <button data-v="5">6 Первый ряд</button>
+    </div>
+    <div id="hint">мышь — вращать камеру · колесо — приближение<br>
+      пробел — пуск/пауза · ← → — 1 с · 1–6 — ракурс · S — 0.5x · T — ткань · I — идл<br>
+      звук: кнопка «Загрузить звук» или перетащите master_v3.wav / .mp3 в окно</div>
+    <div id="caption">
+      <span id="badge">—</span>
+      <div id="capTitle">—</div>
+      <div id="capText">—</div>
+      <div id="next">—</div>
+    </div>
+  </div>
+
+  <div id="side">
+    <div id="sideHead">Транскрипт номера — 60.00 с</div>
+    <div id="tr"></div>
+  </div>
+</div>
+
+<div id="strip"><div id="head"></div></div>
+<div id="legend">
+  <span><i style="background:#e8563f"></i>быстрое движение</span>
+  <span><i style="background:#d9a53b"></i>медленное движение</span>
+  <span><i style="background:#63b58a"></i>реплика</span>
+  <span><i style="background:#5b6b86"></i>удержание неподвижности</span>
+  <span style="color:#6b748a">кресла — это зал, а не реквизит: стул из сценария убран (§9)</span>
+  <span style="color:#6b748a">палитра переворачивается на 00:49.6 — красный зал в лёд</span>
+</div>
+<div id="bar"><div id="fill"></div></div>
+
+<script id="core">
+/* ============================================================
+   ЯДРО. Чистая математика, без DOM.
+
+   ЧТО ЭТО ЗА ФАЙЛ
+   Версия v4 раскадровки. Отличается от v3 только КАРТИНКОЙ:
+   вместо палочного скелета — объёмная фигура с силуэтом Лоэна,
+   узнаваемое копьё, зал с креслами, подиум ведущего и
+   переворот палитры на льду. Таймкоды, позы, транскрипт и
+   работа часов взяты из v3 без изменений — v3 остаётся в
+   проекте и не переписывается.
+
+   ВСЕ ТАЙМКОДЫ — из scenario/timeline-60.json, сверены с
+   фактическим мастером output/master_v3.wav (60.000000 с).
+
+   ЕДИНИЦЫ: метры, секунды. Пол — y=0. Зритель — со стороны +Z.
+   ============================================================ */
+
+const TOTAL = 60.00;   // длительность номера, с (мастер: 60.000000)
+const L     = 2.28;    // длина копья, м
+const TAU   = Math.PI * 2;
+
+const PROP_B = [ 0.52000, 0.00000, -0.12000];  // прислонено справа
+const PROP_T = [ 0.59000, 2.27800, -0.17000];
+const CARR_B = [ 0.24000, 0.00000, -0.02000];  // стоит рядом, в правой руке
+const CARR_T = [ 0.16000, 2.27800,  0.06000];
+const LIFT_B = [ 0.23990, 0.42057, -0.01990];  // сорвано с пола, начало замаха
+const LIFT_T = [ 0.16014, 2.69778,  0.05986];
+const PLNT_B = [ 0.31988, 0.00180,  0.16014];  // воткнуто в пол
+const PLNT_T = [ 0.26002, 2.27786,  0.27985];
+
+const BASE = {
+  rootX:0, rootY:0.95, rootZ:0,
+  yaw:0, lean:0, twist:0, headYaw:0, headPitch:0,
+  lHand:[-0.20,-0.02,0.02], rHand:[0.20,-0.02,0.02],
+  lFoot:[-0.13,-0.95,0.00], rFoot:[0.13,-0.95,0.01],
+  spBut:PLNT_B, spTip:PLNT_T,
+  grip:0.42,     // доля копья позади середины кистей
+  hands:0,       // шаговый флаг: 0 — копьё стоит само, 1 — в руках
+  palm:0,        // 1 — кисть раскрыта и расслаблена
+  clothH:0.12, clothR:0.62, clothZ:-0.42, clothA:1,
+};
+const STEP = new Set(["hands"]);
+
+const K = (t, o = {}, ease = "smooth") => ({ t, ease, pose: { ...BASE, ...o } });
+
+/* --- опорные позы, чтобы удержания были буквально одинаковы --- */
+const UNDER = {                                   // под тканью
+  headPitch:26, lean:1,
+  lHand:[-0.15,-0.03,0.05], rHand:[0.15,-0.03,0.05],
+  clothH:1.86, clothR:0.44, clothZ:0.00,
+  spBut:PROP_B, spTip:PROP_T,
+};
+const EXHIB = {                                   // экспонат, ткань упала
+  headPitch:30, lean:0,
+  lHand:[-0.20,-0.02,0.02], rHand:[0.20,-0.02,0.02],
+  spBut:PROP_B, spTip:PROP_T,
+};
+const WITHSP = {                                  // копьё в правой руке
+  headPitch:0, lean:0, twist:2,
+  lHand:[-0.20,-0.02,0.02], rHand:[0.20240,0.12000,0.01758],
+  spBut:CARR_B, spTip:CARR_T,
+};
+const GUARD = {                                   // боевая стойка
+  lean:8, twist:4, yaw:-10, headPitch:2, hands:1,
+  rHand:[0.30,0.20,-0.06], lHand:[-0.06,0.34,0.42],
+  lFoot:[-0.30,-0.95,0.22], rFoot:[0.24,-0.95,-0.24],
+};
+const LUNGE = {                                   // низкий выпад
+  rootY:0.70, rootZ:0.14, lean:30, twist:8, yaw:-4, headPitch:8, hands:1,
+  rHand:[0.26,0.36,-0.06], lHand:[-0.04,0.06,0.60],
+  lFoot:[-0.34,-0.70,0.50], rFoot:[0.28,-0.70,-0.40],
+};
+const POWER = {                                   // канонная поза силы
+  lean:0, twist:0, headPitch:0, headYaw:0, palm:1,
+  rHand:[0.21,-0.02,0.03], lHand:[-0.20,-0.02,0.02],
+  lFoot:[-0.18,-0.95,0.04], rFoot:[0.18,-0.95,0.02],
+};
+
+const KEYS = [
+  /* ================= БЛОК 1. АУКЦИОН  00:00.00–00:37.85 ============= */
+  K( 0.00, UNDER),
+  K( 4.10, UNDER),                                  // молоток — не реагирует
+  K(13.50, UNDER),                                  // 13.5 с без движения
+  K(14.30, { ...UNDER, headPitch:28, clothH:0.78, clothR:0.54, clothZ:-0.22,
+             lHand:[-0.19,-0.02,0.03], rHand:[0.19,-0.02,0.03] }, "easeOut"),
+  K(15.00, EXHIB, "easeOut"),                       // ткань лежит позади ног
+  K(31.20, EXHIB),                                  // 16.2 с абсолютной неподвижности
+  K(32.00, { ...EXHIB, headPitch:2, twist:6,
+             rHand:[0.38,0.07,-0.05] }),            // голова поднялась, рука пошла
+  K(32.60, { ...EXHIB, headPitch:0, twist:9, headYaw:6,
+             rHand:[0.55288,0.12000,-0.14349] }),   // кисть на древке
+  // копьё поставлено рядом; "over" — острие проходит вертикаль и садится
+  K(33.20, WITHSP, "over"),
+  K(37.85, WITHSP),
+
+  /* ============ БЛОК 2. ТИШИНА И РАСКРЫТИЕ  37.85–43.60 ============= */
+  K(38.45, WITHSP),                                 // начало реплики, 4.32 с
+  K(39.60, { ...WITHSP, headYaw:-5, headPitch:-2, lean:1 }),
+  K(41.00, { ...WITHSP, headYaw:3, headPitch:0, lean:0 }),
+  K(42.40, { ...WITHSP, headYaw:0, headPitch:-1, lean:2 }),
+  // 42.77 реплика кончилась. Дальше 0.83 с тишины — она отдана
+  // подготовке и замаху, фигура в ней не стоит.
+  K(42.77, { ...WITHSP, headPitch:-1, lean:2 }),
+  K(43.02, { ...WITHSP, lean:2,
+             lHand:[0.18557,0.60000,0.03443] }),    // левая кисть на древко
+  // 43.20 — копьё срывается с пола, копьё переходит «в руки»
+  K(43.20, { ...WITHSP, lean:0, hands:1, grip:0.42,
+             rHand:[0.21550,0.16720,0.00450], lHand:[0.19730,0.68680,0.02270],
+             spBut:LIFT_B, spTip:LIFT_T }, "easeOut"),
+
+  /* =================== БЛОК 3. БОЙ  43.60–49.60 ===================== */
+  // 43.60 музыка врывается ровно в верхней точке замаха:
+  // острие на 2.23 м, уведено НАЗАД за плечо. Отсюда дуга вниз.
+  K(43.60, { lean:-14, twist:-12, yaw:6, headPitch:-4, hands:1, grip:0.42,
+             rHand:[0.15230,0.31060,0.23340], lHand:[0.00770,0.60940,-0.11340],
+             lFoot:[-0.22,-0.95,-0.06], rFoot:[0.24,-0.95,0.10] }, "easeOut"),
+  // 43.75 середина дуги. Кадр вставлен по замеру: без него кисти
+  // на пути от взвода к удару сходились до 0.232 м, копьё
+  // проворачивалось на 131.6° за две отрисовки и острие «щёлкало»
+  // со скоростью 25.7 м/с при средней 8.2. Оба участка дуги — linear.
+  K(43.75, { lean:2, twist:0, yaw:-1, headPitch:0, hands:1, grip:0.42,
+             rHand:[0.35630,0.28200,0.04540], lHand:[-0.10630,0.49800,0.14460],
+             lFoot:[-0.26,-0.95,0.15], rFoot:[0.25,-0.95,-0.10] }, "linear"),
+  // 43.90 удар по древку противника (музыка на полном уровне)
+  K(43.90, { lean:16, twist:10, yaw:-8, headPitch:4, hands:1, grip:0.42,
+             rHand:[0.32,0.42,-0.18], lHand:[0.02,0.22,0.44],
+             lFoot:[-0.30,-0.95,0.36], rFoot:[0.26,-0.95,-0.30] }, "linear"),
+  K(44.10, { lean:12, twist:6, yaw:-10, headPitch:2, hands:1, grip:0.42,
+             rHand:[0.31,0.34,-0.12], lHand:[-0.02,0.28,0.44],
+             lFoot:[-0.30,-0.95,0.30], rFoot:[0.25,-0.95,-0.27] }, "easeOut"),
+  K(44.38, GUARD, "over"),                          // стойка садится, а не подъезжает
+  K(45.90, GUARD),                                  // 1.52 с удержания стойки
+  // 45.90 тяжёлый взмах — загрузка на выпад, 0.40 с
+  K(46.05, { lean:12, twist:6, yaw:-8, headPitch:4, hands:1, rootY:0.88,
+             rHand:[0.30,0.26,-0.14], lHand:[-0.02,0.30,0.34],
+             lFoot:[-0.28,-0.88,0.26], rFoot:[0.26,-0.88,-0.28] }, "easeOut"),
+  K(46.30, LUNGE, "easeIn"),                        // выпад, удар по броне
+  K(48.50, LUNGE),                                  // 2.2 с низко
+  K(49.10, { rootY:0.95, rootZ:0.02, lean:4, twist:2, yaw:-2, headPitch:2,
+             hands:1, grip:0.4825,
+             rHand:[0.30,0.10,0.16], lHand:[0.16,0.52,0.28],
+             lFoot:[-0.22,-0.95,0.10], rFoot:[0.22,-0.95,-0.08] }),
+  K(49.35, { lean:2, hands:1, grip:0.4825,
+             rHand:[0.29520,0.49000,0.20950], lHand:[0.28680,0.80970,0.22630],
+             lFoot:[-0.24,-0.95,0.12], rFoot:[0.24,-0.95,-0.10] }, "easeOut"),
+
+  /* =================== БЛОК 4. ЛЁД  49.60–60.00 ==================== */
+  // 49.60 пятка древка вбита в пол
+  K(49.60, { lean:6, headPitch:5, hands:1, grip:0.4825,
+             rHand:[0.29520,-0.00970,0.20950], lHand:[0.28680,0.30970,0.22630],
+             lFoot:[-0.24,-0.95,0.12], rFoot:[0.24,-0.95,-0.10] }, "easeIn"),
+  // 50.00 копьё стоит само — переключение обратно на мировой отрезок
+  K(50.00, { lean:5, headPitch:4, hands:0, grip:0.4825,
+             rHand:[0.29520,-0.00970,0.20950], lHand:[0.28680,0.30970,0.22630],
+             lFoot:[-0.24,-0.95,0.12], rFoot:[0.24,-0.95,-0.10] }),
+  K(50.80, POWER, "over"),                          // поза силы, кисть раскрыта
+  K(51.83, POWER),                                  // «Was that all?»
+  K(53.30, POWER),
+  K(54.79, POWER),                                  // «How disappointing.»
+  K(55.30, POWER),
+  K(55.50, { ...POWER, headPitch:-3, lean:1 }, "easeIn"),   // ледяной удар
+  K(60.00, { ...POWER, headPitch:-3, lean:1 }),             // держать 4.5 с
+];
+
+/* ---------------------- интерполяция ---------------------------- */
+const smooth  = (u) => u * u * (3 - 2 * u);
+const easeIn  = (u) => u * u;
+const easeOut = (u) => 1 - (1 - u) * (1 - u);
+/* Доводка с перелётом: значение уходит за цель и возвращается.
+   Так поза не «подъезжает», а приходит и садится — движение
+   читается как живое, а не как интерполяция.
+   ВАЖНО: применять только там, где обе граничные величины по
+   опасным осям совпадают (высота ступни, высота бёдер). Иначе
+   перелёт уводит ногу под пол. Проверено для 33.20, 44.38 и
+   50.80: у всех трёх ступни на -0.95 в обоих кадрах.            */
+const backOut = (u) => {
+  const c = 1.55, v = u - 1;
+  return 1 + (c + 1) * v * v * v + c * v * v;
+};
+function shape(u, mode) {
+  if (u < 0) u = 0; else if (u > 1) u = 1;
+  if (mode === "linear")  return u;
+  if (mode === "easeIn")  return easeIn(u);
+  if (mode === "easeOut") return easeOut(u);
+  if (mode === "over")    return backOut(u);
+  return smooth(u);
+}
+function poseAt(t) {
+  const n = KEYS.length;
+  if (t <= KEYS[0].t) return { ...KEYS[0].pose };
+  if (t >= KEYS[n - 1].t) return { ...KEYS[n - 1].pose };
+  let i = 0;
+  while (i < n - 2 && KEYS[i + 1].t <= t) i++;
+  const a = KEYS[i], b = KEYS[i + 1];
+  const span = b.t - a.t;
+  const u = span > 1e-9 ? shape((t - a.t) / span, b.ease) : 0;
+  const out = {};
+  for (const k in BASE) {
+    const va = a.pose[k], vb = b.pose[k];
+    if (STEP.has(k)) { out[k] = u < 1 ? va : vb; continue; }
+    if (Array.isArray(va)) out[k] = va.map((v, j) => v + (vb[j] - v) * u);
+    else out[k] = va + (vb - va) * u;
+  }
+  return out;
+}
+
+/* ------------------------- вектора ------------------------------ */
+const rad = (d) => d * Math.PI / 180;
+const add = (a, b) => [a[0]+b[0], a[1]+b[1], a[2]+b[2]];
+const sub = (a, b) => [a[0]-b[0], a[1]-b[1], a[2]-b[2]];
+const mul = (a, s) => [a[0]*s, a[1]*s, a[2]*s];
+const len = (a) => Math.hypot(a[0], a[1], a[2]);
+const norm = (a) => { const l = len(a) || 1; return mul(a, 1 / l); };
+const cross = (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+const mix = (a, b, u) => [a[0]+(b[0]-a[0])*u, a[1]+(b[1]-a[1])*u, a[2]+(b[2]-a[2])*u];
+function rotY(p, d) { const c = Math.cos(rad(d)), s = Math.sin(rad(d));
+  return [p[0]*c + p[2]*s, p[1], -p[0]*s + p[2]*c]; }
+function rotX(p, d) { const c = Math.cos(rad(d)), s = Math.sin(rad(d));
+  return [p[0], p[1]*c - p[2]*s, p[1]*s + p[2]*c]; }
+
+// середина отрезка, отодвинутая в сторону: так локоть и колено
+// не выглядят прямой палкой
+function midJoint(from, to, push) {
+  const m = mul(add(from, to), 0.5);
+  const dir = norm(sub(to, from));
+  let side = cross(dir, [0, 1, 0]);
+  if (len(side) < 0.05) side = [1, 0, 0];
+  return add(m, add(mul(norm(side), push[0]), [0, push[1], push[2]]));
+}
+
+/* ------------------------- копьё -------------------------------- */
+function spearSeg(p) {
+  if (p.hands < 0.5) return [[...p.spBut], [...p.spTip]];
+  const d = norm(sub(p.lHand, p.rHand));           // задняя кисть → передняя
+  const mid = mul(add(p.lHand, p.rHand), 0.5);
+  const but = sub(mid, mul(d, p.grip * L));        // пятка за задней кистью
+  const tip = add(mid, mul(d, (1 - p.grip) * L));  // наконечник за передней
+  const place = (v) => add(rotY(v, p.yaw), [p.rootX, p.rootY, p.rootZ]);
+  return [place(but), place(tip)];
+}
+
+/* ------------------------- скелет ------------------------------
+   Кроме точек сочленений отдаём ОРТЫ корпуса и головы. Без них
+   пальто, плащ и волосы нельзя посадить на тело: при наклоне и
+   скрутке они должны ехать вместе с грудью, а не висеть по
+   мировым осям.                                                  */
+function skeleton(p) {
+  const hip   = [0, 0, 0];
+  const chest = rotX(rotY([0, 0.52, 0], p.twist), p.lean);
+  const neck  = add(chest, rotX([0, 0.10, 0], p.lean));
+  const head  = add(neck, rotX(rotY([0, 0.20, 0], p.headYaw * 0.35),
+                               p.lean * 0.6 + p.headPitch * 0.35));
+  const shL = add(chest, rotX(rotY([-0.20, 0.02, 0], p.twist), p.lean));
+  const shR = add(chest, rotX(rotY([ 0.20, 0.02, 0], p.twist), p.lean));
+  const hipL = [-0.11, 0, 0], hipR = [0.11, 0, 0];
+
+  const elL = midJoint(shL, p.lHand, [-0.13, -0.06, 0]);
+  const elR = midJoint(shR, p.rHand, [ 0.13, -0.06, 0]);
+  const knL = midJoint(hipL, p.lFoot, [0, 0.02, 0.13]);
+  const knR = midJoint(hipR, p.rFoot, [0, 0.02, 0.13]);
+
+  const gaze = add(head, rotX(rotY([0, 0, 0.30], p.headYaw),
+                              p.headPitch + p.lean * 0.4));
+
+  const place = (v) => add(rotY(v, p.yaw), [p.rootX, p.rootY, p.rootZ]);
+  const dir   = (v) => rotY(v, p.yaw);            // орт: только поворот
+
+  const bax = dir(rotX(rotY([1,0,0], p.twist), p.lean));
+  const bay = dir(rotX(rotY([0,1,0], p.twist), p.lean));
+  const baz = dir(rotX(rotY([0,0,1], p.twist), p.lean));
+  const hpit = p.headPitch + p.lean * 0.5;
+  const hax = dir(rotX(rotY([1,0,0], p.headYaw), hpit));
+  const hay = dir(rotX(rotY([0,1,0], p.headYaw), hpit));
+  const haz = dir(rotX(rotY([0,0,1], p.headYaw), hpit));
+
+  return {
+    hip:place(hip), chest:place(chest), neck:place(neck), head:place(head),
+    shL:place(shL), shR:place(shR), hipL:place(hipL), hipR:place(hipR),
+    elL:place(elL), elR:place(elR), knL:place(knL), knR:place(knR),
+    lHand:place(p.lHand), rHand:place(p.rHand),
+    lFoot:place(p.lFoot), rFoot:place(p.rFoot),
+    gaze:place(gaze),
+    bax, bay, baz, hax, hay, haz,
+    fw: norm([baz[0], 0, baz[2]]),               // куда смотрит корпус по полу
+    spear: spearSeg(p),
+    yaw:p.yaw, palm:p.palm, hands:p.hands,
+    cloth: { h:p.clothH, r:p.clothR, z:p.clothZ, a:p.clothA },
+  };
+}
+
+/* ======================== СЦЕНКИ ============================== */
+const BLOCKS = [
+  { name:"Аукцион",            t0: 0.00, t1:37.85 },
+  { name:"Тишина и раскрытие", t0:37.85, t1:43.60 },
+  { name:"Бой",                t0:43.60, t1:49.60 },
+  { name:"Лёд",                t0:49.60, t1:60.00 },
+];
+
+/* ==================== ТРАНСКРИПТ ==============================
+   [начало, конец, блок, тип, заголовок, что делает тело,
+    что видно на экране]
+   тип: hold — стоять; slow — медленное движение;
+        fast — быстрое движение; line — реплика
+   Седьмое поле — новое в v4: оно объясняет картинку, а не
+   задачу исполнителя.
+   ============================================================== */
+const ROWS = [
+  [ 0.00,  4.10, 0, "hold", "Под тканью — стоите",
+    "Закрытый силуэт: ткань конусом до пола, округлый верх (голова), покатые плечи. Ни одного движения. Копьё стоит справа, прислонённое.",
+    "На экране: конус ткани, из-под него ничего не видно — так и должно быть. Справа стоит копьё, оно под ткань не убирается. Впереди зал, слева подиум ведущего."],
+  [ 4.10, 13.50, 0, "hold", "Удар молотка — НЕ реагируете",
+    "Продали другой лот. Не дёргаетесь, не поворачиваете голову, не переносите вес. 9.4 с полной неподвижности.",
+    "На экране ничего не меняется девять секунд. Это проверка: если вам скучно смотреть — залу тоже, и именно поэтому дальше идёт сброс ткани, а не ещё одна пауза."],
+  [13.50, 15.00, 0, "slow", "Ткань падает — 1.5 с",
+    "Сброс подтверждён звуком: на 00:13.500 в дорожке шорох ткани. Не стягиваете — отпускаете изнутри: кисти разжимаются, груз по нижней кромке тянет ткань вниз и назад, она ложится позади ног. Корпус стоит.",
+    "На экране конус оседает вниз и назад, и из-под него выходит костюм целиком. Это первый раз, когда зал видит, что было лотом."],
+  [15.00, 31.20, 0, "hold", "Экспонат — 16.2 с без движения",
+    "Голова опущена, взгляд в пол, руки свободно вдоль тела. Ничего не поправляете. Это самый трудный кусок номера и он сделан намеренно.",
+    "На экране костюм стоит открытым и неподвижным 16 секунд. Ткань лежит позади ног. Покрутите камеру мышью — это ровно то окно, когда судьи разглядывают костюм, и других таких окон в минуте нет."],
+  [31.20, 32.00, 0, "slow", "Голова поднимается — 0.8 с",
+    "Ведущий давится на середине слова. Медленно поднимаете голову до уровня зала. Плечи оставьте на месте, поднимается только голова.",
+    "На экране двигается ТОЛЬКО голова: волосы уходят из наклона, лицо разворачивается к залу. Плечи и руки на месте — если поедут и они, эффект «экспонат ожил» пропадёт."],
+  [32.00, 33.20, 0, "slow", "Берёте копьё правой рукой",
+    "Правая рука уходит вправо, берёте древко и ставите копьё вертикально рядом с собой, пяткой в пол. С подъёмом головы это ОДНО слитное движение, всего около 2 с.",
+    "На экране копьё съезжает из наклонного «прислонено» в вертикальное «в руке» и оказывается рядом с правой ногой. Наконечник при этом описывает заметную дугу — с зала это видно лучше, чем движение руки."],
+  [33.20, 37.85, 0, "hold", "Стоите с копьём — 4.65 с",
+    "Копьё вертикально в правой руке, корпус развёрнут к залу. Не двигаетесь.",
+    "На экране первый «правильный» силуэт персонажа: открытый костюм, вертикальное копьё, прямая осанка. Запомните эту картинку — к ней номер вернётся в финале."],
+  [37.85, 38.45, 1, "hold", "ТИШИНА 1 из 2 — 0.60 с, стоите",
+    "Подложка кончилась. Звука нет: из этих 0.60 с ровно 0.55 с — настоящая цифровая тишина. Так задумано, дорожка не сломалась. Стоите, не заполняйте пустоту движением.",
+    "На экране не меняется ничего. Смотрите на часы: 0.6 с — это меньше, чем кажется на слух в тишине."],
+  [38.45, 42.77, 1, "line", "Реплика — 4.32 с",
+    "«You misunderstand. I was never the merchandise.» Никаких больших движений: работают только корпус и голова. Руки пока вдоль тела, копьё стоит вертикально в правой.",
+    "На экране голова слегка ведёт из стороны в сторону — это вся пластика реплики. Тело неподвижно намеренно: пять секунд без единого звука, кроме голоса, — самое безопасное место номера."],
+  [42.77, 43.60, 1, "slow", "ТИШИНА 2 из 2 — 0.83 с: подготовка и замах",
+    "Снова полная тишина, 0.75 с из неё — настоящая, −120 dB. Это самое рискованное место номера, и оно отдано движению: левая кисть приходит на древко (к 43.02), копьё срывается с пола (43.20), острие уходит ВВЕРХ и НАЗАД за плечо, на 2.23 м. В тишине вы не стоите и не дёргаетесь — вы взводите.",
+    "На экране левая рука поднимается на древко, копьё отрывается от пола и уходит острием назад-вверх за плечо. Смотрите на наконечник: он должен уйти ВЫСОКО, иначе следующая дуга будет короткой и удар не прочитается."],
+  [43.60, 43.90, 2, "fast", "УДАР по древку — дуга вниз, 0.30 с",
+    "Музыка врывается ровно в верхней точке замаха. Оттуда острие идёт через горизонталь вниз-вперёд, проходит по дуге 2.9 м (средняя скорость острия 9.8 м/с) и встречает древку противника на 43.90, когда музыка на полном уровне. Самое быстрое место номера. Ведите копьё ровно, без рывка на середине.",
+    "На экране самое быстрое движение всей минуты: наконечник проносится сверху-сзади вниз-вперёд. Включите 0.5x и посмотрите ещё раз — на полной скорости с зала читается только смазанная дуга, и это нормально."],
+  [43.90, 45.90, 2, "hold", "Стойка — 2.0 с",
+    "Держите боевую стойку: острие вперёд-вверх, пятка древка сзади-снизу. Между ударами не суетитесь, стойка не «дышит».",
+    "На экране копьё лежит по диагонали, корпус развёрнут вполоборота. Две секунды без движения посреди боя — это работает как пауза, но только если стойка действительно стоит."],
+  [45.90, 46.30, 2, "fast", "ТЯЖЁЛЫЙ ВЗМАХ и НИЗКИЙ ВЫПАД — 0.40 с",
+    "На 45.90 в дорожке тяжёлый взмах — с него роняете центр тяжести (бёдра с 0.95 до 0.70 м) и уходите в длинный выпад. Удар по броне на 46.30, острие вниз-вперёд на высоту 0.40 м. Быстро, корпус низко.",
+    "На экране фигура резко проседает и вытягивается вперёд: бёдра падают на 25 см, ноги расходятся почти на метр. Это единственное место, где силуэт становится ГОРИЗОНТАЛЬНЫМ — на общем плане оно и читается сильнее всего."],
+  [46.30, 48.50, 2, "hold", "Держите низко — 2.2 с",
+    "Остаётесь в низком выпаде, вес на передней ноге. Ничего не подправляете. С 47.45 под вами два слоя разгона, а боевая музыка приглушается на 5 dB — звук заранее теряет силу и подводит к удару копья. Вы в этой подводке просто держите низкую позицию.",
+    "На экране низкий силуэт держится 2.2 с. Проверьте по «Сбоку» (ракурс 3), не завалились ли колено и бедро — на этом ракурсе видно, стоит выпад или падает."],
+  [48.50, 49.35, 2, "slow", "Распрямляетесь",
+    "На 48.50 в дорожке бегство толпы — на него не смотрите. Разгон под вами продолжается, музыка уже без силы, поэтому не спешите. Встаёте, копьё приводите в вертикаль перед собой. Спокойно, это не боевое движение.",
+    "На экране фигура поднимается из выпада и копьё выходит в вертикаль, пятка древка поднята над полом на полметра. Это взвод перед ударом в пол — не торопите его."],
+  [49.35, 49.60, 3, "fast", "КОПЬЁ В ПОЛ",
+    "Пятка древка поднята на 0.50 м и резко вбивается в пол на 49.60. От точки удара — ледяной разряд. Музыка не просто обрывается, а ЗАМЕРЗАЕТ: фильтр съезжает с 12000 до 300 Гц к 50.05. Дальше копьё стоит само.",
+    "На экране в этот момент ПЕРЕВОРАЧИВАЕТСЯ ПАЛИТРА: красный зал уходит в льдисто-белый, от пятки копья по полу расходится лёд. Это и есть кульминация, и делает её не тело, а свет и звук."],
+  [49.60, 50.80, 3, "slow", "Отпускаете копьё",
+    "Ледяной разряд, музыка умерла. 49.85 — замороженный зал, 49.90 — расползание льда. Копьё остаётся воткнутым вертикально. Руки уходят вниз, правая кисть РАСКРЫТА и расслабленно опущена вдоль тела.",
+    "На экране руки сходят с древка, и копьё продолжает стоять само — воткнутое. Лёд расходится кругом. Кисть раскрывается: с зала это мелко, но на общем плане видно, что рука не сжата."],
+  [50.80, 51.83, 3, "line", "«Was that all?» — поза силы",
+    "Канонная поза: спина прямая, подбородок ровный, кисть раскрыта и опущена. НИКАКОЙ боевой стойки, никакого замаха, копьё вы не держите напряжённо.",
+    "На экране фигура стоит свободно рядом с воткнутым копьём. Сравните с силуэтом на 00:33 — та же осанка, но теперь вокруг лёд, а не красный зал. Номер закрывает кольцо."],
+  [51.83, 53.30, 3, "hold", "Держите — 1.47 с",
+    "Не двигаетесь вообще. Пауза между репликами работает на вас.",
+    "На экране только лёд расходится по полу. Тело не делает ничего — и это правильно."],
+  [53.30, 54.79, 3, "line", "«How disappointing.»",
+    "Ни одного движения. Разочарование идёт через осанку — не через лицо и не через руки.",
+    "На экране по-прежнему неподвижная фигура. Мимики с десятого метра не существует, поэтому вся эмоция здесь — в том, что вы НЕ двигаетесь."],
+  [54.79, 55.50, 3, "hold", "Держите",
+    "Тишина перед ледяным ударом. Стоите ровно.",
+    "На экране пауза перед последним акцентом. Лёд от первого удара уже почти погас — второй пойдёт шире."],
+  [55.50, 60.00, 3, "hold", "ФИНАЛЬНАЯ ПОЗА — 4.5 с",
+    "Ледяной удар: работает лёд, а не тело. Подбородок на волос выше, вес ровно на двух ногах. Держите 4.5 с до конца, ни одного лишнего движения.",
+    "На экране второй, широкий круг льда — 4.8 м против 3.4 м у первого. Подбородок поднялся на три градуса, и это всё движение финала. Держать 4.5 с до тишины."],
+];
+
+/* ---- что звучит: [начало, конец, текст] ----
+   Список событий взят из scenario/timeline-60.json и сверен
+   с мастером output/master_v3.wav.                            */
+const SOUNDS = [
+  [ 0.00,  4.10, "гул зала, аукцион идёт"],
+  [ 4.10,  4.60, "УДАР МОЛОТКА — продали другой лот"],
+  [ 4.60, 13.50, "гул зала"],
+  [13.50, 15.00, "ШОРОХ ТКАНИ — сброс подтверждён звуком"],
+  [15.00, 31.20, "ведущий описывает лот"],
+  [31.20, 37.85, "ведущий давится на середине слова, зал замолкает"],
+  [37.85, 38.45, "ТИШИНА 0.60 с (0.55 с — настоящая цифровая тишина)"],
+  [38.45, 42.77, "ваша реплика, 4.32 с: «You misunderstand. I was never the merchandise.»"],
+  [42.77, 43.60, "ТИШИНА 0.83 с (0.75 с — настоящая, −120 dB). Так задумано"],
+  [43.60, 43.90, "музыка врывается — атака"],
+  [43.90, 45.90, "музыка на полном уровне"],
+  [45.90, 46.30, "тяжёлый взмах"],
+  [46.30, 47.45, "удар по броне, музыка"],
+  [47.45, 48.50, "два слоя разгона перед ударом копья; боевая музыка приглушена на 5 dB"],
+  [48.50, 49.60, "бегство толпы; разгон продолжается, музыка уже без силы"],
+  [49.60, 49.85, "ЛЕДЯНОЙ РАЗРЯД — музыка замерзает: фильтр с 12000 до 300 Гц"],
+  [49.85, 49.90, "замороженный зал"],
+  [49.90, 50.05, "развёртка фильтра дожимает музыку до 300 Гц"],
+  [50.05, 50.80, "расползание льда"],
+  [50.80, 51.83, "ваша реплика: «Was that all?»"],
+  [51.83, 53.30, "лёд"],
+  [53.30, 54.79, "ваша реплика: «How disappointing.»"],
+  [54.79, 55.50, "лёд"],
+  [55.50, 60.00, "ледяной удар, финал"],
+];
+
+const ICE = [[49.60, 3.4], [55.50, 4.8]];   // [время, макс. радиус]
+const FLIP = 49.60;                         // переворот палитры: зал → лёд
+
+/* ---- динамика отрисовки ----
+   Четыре акцента, на которых камера получает отдачу. Времена — те
+   же, что у звуковых событий в timeline-60.json, ни одно не
+   придумано. Это ОФОРМЛЕНИЕ: ни одна поза и ни один таймкод
+   хореографии от него не меняются.
+   [время, амплитуда в метрах, вид]                              */
+const HITS = [
+  [43.90, 0.050, "staff"],   // удар по древку противника
+  [46.30, 0.042, "armor"],   // удар по броне
+  [49.60, 0.075, "plant"],   // копьё в пол
+  [55.50, 0.090, "ice"],     // финальный ледяной удар
+];
+const LAG_DT = 0.10;     // на сколько секунд отстаёт подол и плащ
+const SMEAR  = 0.045;    // сдвиг смазанного силуэта на быстрых кадрах
+</script>
+
+<script id="ui">
+/* ==================== интерфейс и отрисовка ==================== */
+function fail(m) {
+  const b = document.getElementById("err");
+  if (b) { b.style.display = "block"; b.textContent = "Ошибка: " + m; }
+}
+window.addEventListener("error", (e) => fail(e.message + "  (строка " + e.lineno + ")"));
+window.addEventListener("unhandledrejection", (e) => fail(String(e.reason)));
+
+try {
+const el = (id) => document.getElementById(id);
+el("nojs").remove();
+
+const KIND = {
+  hold: { label:"ДЕРЖАТЬ",   color:"#5b6b86" },
+  slow: { label:"МЕДЛЕННО",  color:"#d9a53b" },
+  fast: { label:"БЫСТРО",    color:"#e8563f" },
+  line: { label:"РЕПЛИКА",   color:"#63b58a" },
+};
+const fmt = (t) => {
+  if (!(t > 0)) t = 0;
+  const m = Math.floor(t / 60), s = t - m * 60;
+  return String(m).padStart(2, "0") + ":" + s.toFixed(2).padStart(5, "0");
+};
+
+/* ------------------------- палитра -----------------------------
+   Цвета — массивы [r,g,b], потому что каждая поверхность
+   затеняется по своей нормали. Строкой это делать нельзя.
+   Взято с референсов костюма: мятные волосы, тёмно-синее пальто
+   с золотым кантом, кремовый жилет, белые штаны, высокие
+   почти чёрные сапоги с серебряным носком, ярко-синий плащ
+   со светло-голубой подбивкой.                                  */
+const C = {
+  hair:   [147,211,192], hair2:[104,178,158],
+  skin:   [244,216,194],
+  eye:    [ 96, 68,150],
+  coat:   [ 44, 60,104], coatD:[ 28, 40, 74], sleeve:[ 56, 74,124],
+  trim:   [214,180,104],
+  vest:   [238,236,226], pants:[240,238,230],
+  cape:   [ 46, 82,208], capeIn:[150,200,236],
+  boot:   [ 32, 40, 68], bootTip:[190,198,209], accent:[127,212,232],
+  glove:  [ 26, 30, 44],
+  armor:  [ 46, 58, 92],
+  shaft:  [232,236,243], shaftD:[ 34, 42, 66],
+  blade:  [ 52, 64,102], bladeG:[226,209,176], bladeI:[150,212,236],
+  cloth:  [166,152,126],
+  floor:  [ 40, 46, 62], floorIce:[ 44, 68, 94],
+  chair:  [ 74, 56, 50], chairIce:[ 56, 70, 92],
+  wood:   [ 92, 70, 52],
+  wall:   [ 42, 34, 42], wallIce:[ 34, 52, 72],
+};
+const LIGHT = norm([-0.42, 0.80, 0.55]);
+/* Контур. Персонаж рисованный, и без обводки соседние детали
+   одного тона сливаются в пятно: первая версия дала фигуру
+   вообще без рук — рукава пальто слились с корпусом. */
+const INK = "rgba(9,11,18,0.88)";
+
+/* ------------------------- камера ------------------------------ */
+/* Дистанции подобраны по отрендеренным кадрам: на 5.4 м фигура
+   занимала около 15% высоты экрана и силуэт не читался вообще. */
+const VIEWS = [
+  { az:   0, el:  8, d: 3.9 },   // зритель
+  { az: -36, el: 12, d: 4.0 },   // три четверти
+  { az: -88, el:  8, d: 3.8 },   // сбоку
+  { az: -20, el: 58, d: 5.0 },   // сверху
+  { az: -28, el:  6, d: 2.5 },   // крупно, по грудь
+  { az:  -6, el: -2, d: 3.2 },   // с первого ряда, чуть снизу
+];
+let cam = { ...VIEWS[1] };
+const target = [0, 1.02, 0];
+
+const cv = el("cv"), ctx = cv.getContext("2d");
+let W = 0, H = 0, DPR = 1, F = 700;
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = cv.clientWidth || 800; H = cv.clientHeight || 600;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  F = Math.min(W, H) * 0.92;
+}
+window.addEventListener("resize", resize);
+
+let EYE = [0, 1, 5];
+/* Отдача камеры на ударах: затухающая синусоида. Сдвигается вся
+   камера целиком — и глаз, и точка взгляда, — поэтому сцена стоит
+   на месте, а кадр вздрагивает. Именно так удар и читается: без
+   отдачи попадание в 0.30 с на общем плане просто не видно. */
+function shakeAt(tt) {
+  let a = 0;
+  for (let i = 0; i < HITS.length; i++) {
+    const d = tt - HITS[i][0];
+    if (d < 0 || d > 0.5) continue;
+    a += HITS[i][1] * Math.exp(-d * 8.5) * Math.sin(d * 78);
+  }
+  return a;
+}
+function setCam() {
+  const sh = shakeAt(t);
+  const tg = [target[0] + sh * 0.55, target[1] + sh, target[2]];
+  const ca = Math.cos(rad(cam.az)), sa = Math.sin(rad(cam.az));
+  const ce = Math.cos(rad(cam.el)), se = Math.sin(rad(cam.el));
+  EYE = [tg[0] + cam.d*ce*sa, tg[1] + cam.d*se, tg[2] + cam.d*ce*ca];
+  CF = norm(sub(tg, EYE));
+  CR = norm(cross([0, 1, 0], CF));
+  if (!isFinite(CR[0]) || len(CR) < 1e-6) CR = [1, 0, 0];
+  CU = cross(CF, CR);
+}
+let CF = [0,0,-1], CR = [1,0,0], CU = [0,1,0];
+
+function project(p) {
+  const v = sub(p, EYE);
+  const z = v[0]*CF[0] + v[1]*CF[1] + v[2]*CF[2];
+  if (z < 0.18) return null;
+  const x = v[0]*CR[0] + v[1]*CR[1] + v[2]*CR[2];
+  const y = v[0]*CU[0] + v[1]*CU[1] + v[2]*CU[2];
+  return [W/2 + F*x/z, H/2 - F*y/z, z];
+}
+
+/* --------------- список отрисовки с сортировкой ----------------
+   Художественный алгоритм: всё складывается в список, сортируется
+   по удалённости и рисуется от дальнего к ближнему. Без этого
+   объёмная фигура выворачивается наизнанку — руки оказываются
+   поверх головы, а ткань под фигурой вместо того чтобы её
+   закрывать.                                                     */
+let DL = [], LBL = [];
+/* Общий множитель прозрачности. Нужен, чтобы одним и тем же кодом
+   нарисовать смазанный след фигуры на быстрых кадрах. Значение
+   ЗАХВАТЫВАЕТСЯ в момент вызова примитива, а не читается при
+   flush(): к моменту отрисовки ALPHA уже вернётся к единице. */
+let ALPHA = 1;
+function push(z, fn) { DL.push([z, fn]); }
+function flush() {
+  DL.sort((a, b) => b[0] - a[0]);
+  for (let i = 0; i < DL.length; i++) DL[i][1]();
+  DL.length = 0;
+  for (let i = 0; i < LBL.length; i++) LBL[i]();
+  LBL.length = 0;
+}
+
+function tone(rgb, k) {
+  return "rgb(" + Math.round(Math.min(255, rgb[0]*k)) + "," +
+                  Math.round(Math.min(255, rgb[1]*k)) + "," +
+                  Math.round(Math.min(255, rgb[2]*k)) + ")";
+}
+// освещение двустороннее (по модулю): порядок обхода вершин у
+// плоских деталей вроде плаща не задан, и односторонний свет
+// делал бы половину лоскутов чёрными
+function shadeK(n, amb) {
+  const a = amb === undefined ? 0.52 : amb;
+  const d = Math.abs(n[0]*LIGHT[0] + n[1]*LIGHT[1] + n[2]*LIGHT[2]);
+  return a + (1 - a) * d;
+}
+
+/* залитый многоугольник в 3D */
+function face(pts, rgb, o) {
+  const n = pts.length;
+  const ps = new Array(n);
+  let zs = 0;
+  for (let i = 0; i < n; i++) {
+    const q = project(pts[i]);
+    if (!q) return;                 // деталь ушла за камеру — не рисуем
+    ps[i] = q; zs += q[2];
+  }
+  const opt = o || {};
+  let k = 1;
+  if (!opt.flat) {
+    const nv = cross(sub(pts[1], pts[0]), sub(pts[2 % n], pts[1]));
+    const l = len(nv);
+    k = l > 1e-9 ? shadeK(mul(nv, 1/l), opt.amb) : 0.9;
+  }
+  const fill = tone(rgb, k * (opt.k || 1));
+  const st = opt.stroke, lw = opt.lw || 1;
+  const a0 = opt.a === undefined ? 1 : opt.a;
+  const al = a0 * ALPHA < 1 ? a0 * ALPHA : undefined;
+  push(zs / n + (opt.bias || 0), () => {
+    if (al !== undefined) { ctx.save(); ctx.globalAlpha = al; }
+    ctx.beginPath();
+    ctx.moveTo(ps[0][0], ps[0][1]);
+    for (let i = 1; i < n; i++) ctx.lineTo(ps[i][0], ps[i][1]);
+    ctx.closePath();
+    ctx.fillStyle = fill; ctx.fill();
+    if (st) { ctx.strokeStyle = st; ctx.lineWidth = lw; ctx.stroke(); }
+    if (al !== undefined) ctx.restore();
+  });
+}
+
+/* конечность: капсула, радиусы заданы в метрах и уменьшаются
+   с удалением — иначе рука вблизи камеры остаётся спичкой */
+function limb(a, b, ra, rb, rgb, o) {
+  const pa = project(a), pb = project(b);
+  if (!pa || !pb) return;
+  const opt = o || {};
+  const sa = F*ra/pa[2], sb = F*rb/pb[2];
+  let dx = pb[0]-pa[0], dy = pb[1]-pa[1];
+  const l = Math.hypot(dx, dy);
+  if (l < 1e-6) { dx = 1; dy = 0; } else { dx /= l; dy /= l; }
+  const nx = -dy, ny = dx;
+  // свет: чем сильнее конечность направлена на источник, тем светлее
+  const d = norm(sub(b, a));
+  const k = 0.72 + 0.28 * (1 - Math.abs(d[0]*LIGHT[0]+d[1]*LIGHT[1]+d[2]*LIGHT[2]));
+  const fill = tone(rgb, k * (opt.k || 1));
+  const hi = opt.hi ? tone(rgb, k * 1.42) : null;
+  const ow = opt.out === false ? 0 : Math.max(0.9, sa * 0.16);
+  const ga = ALPHA;
+  push((pa[2]+pb[2])/2 + (opt.bias || 0), () => {
+    if (ga < 1) { ctx.save(); ctx.globalAlpha = ga; }
+    const cap = (ea, eb, col) => {
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.moveTo(pa[0]+nx*ea, pa[1]+ny*ea);
+      ctx.lineTo(pb[0]+nx*eb, pb[1]+ny*eb);
+      ctx.lineTo(pb[0]-nx*eb, pb[1]-ny*eb);
+      ctx.lineTo(pa[0]-nx*ea, pa[1]-ny*ea);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.arc(pa[0], pa[1], ea, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(pb[0], pb[1], eb, 0, TAU); ctx.fill();
+    };
+    if (ow) cap(sa + ow, sb + ow, INK);      // обводка — вторым слоем снизу
+    cap(sa, sb, fill);
+    if (hi) {              // блик вдоль одной стороны — даёт объём
+      ctx.strokeStyle = hi; ctx.lineWidth = Math.max(1, sa * 0.5);
+      ctx.beginPath();
+      ctx.moveTo(pa[0]+nx*sa*0.55, pa[1]+ny*sa*0.55);
+      ctx.lineTo(pb[0]+nx*sb*0.55, pb[1]+ny*sb*0.55);
+      ctx.stroke();
+    }
+    if (ga < 1) ctx.restore();
+  });
+}
+
+function ball(c, r, rgb, o) {
+  const p = project(c); if (!p) return;
+  const opt = o || {};
+  const s = F*r/p[2];
+  const fill = tone(rgb, opt.k || 1);
+  const ow = opt.out === false ? 0 : Math.max(0.9, s * 0.13);
+  const ga = ALPHA;
+  push(p[2] + (opt.bias || 0), () => {
+    if (ga < 1) { ctx.save(); ctx.globalAlpha = ga; }
+    if (ow) {
+      ctx.fillStyle = INK;
+      ctx.beginPath(); ctx.arc(p[0], p[1], s + ow, 0, TAU); ctx.fill();
+    }
+    if (opt.grad) {
+      const g = ctx.createRadialGradient(p[0]-s*0.35, p[1]-s*0.4, s*0.1, p[0], p[1], s);
+      g.addColorStop(0, tone(rgb, (opt.k||1) * 1.28));
+      g.addColorStop(1, tone(rgb, (opt.k||1) * 0.68));
+      ctx.fillStyle = g;
+    } else ctx.fillStyle = fill;
+    ctx.beginPath(); ctx.arc(p[0], p[1], s, 0, TAU); ctx.fill();
+    if (ga < 1) ctx.restore();
+  });
+}
+
+function seg(a, b, color, wpx, o) {
+  const pa = project(a), pb = project(b);
+  if (!pa || !pb) return;
+  const opt = o || {};
+  const ga = (opt.a === undefined ? 1 : opt.a) * ALPHA;
+  push((pa[2]+pb[2])/2 + (opt.bias || 0), () => {
+    ctx.strokeStyle = color; ctx.lineWidth = wpx; ctx.lineCap = "round";
+    if (ga < 1) { ctx.save(); ctx.globalAlpha = ga; }
+    ctx.beginPath(); ctx.moveTo(pa[0], pa[1]); ctx.lineTo(pb[0], pb[1]); ctx.stroke();
+    if (ga < 1) ctx.restore();
+  });
+}
+
+function box(c, hx, hy, hz, rgb, o) {
+  const v = [];
+  for (const sx of [-1,1]) for (const sy of [-1,1]) for (const sz of [-1,1])
+    v.push([c[0]+sx*hx, c[1]+sy*hy, c[2]+sz*hz]);
+  const FS = [[0,1,3,2],[4,5,7,6],[0,1,5,4],[2,3,7,6],[0,2,6,4],[1,3,7,5]];
+  for (const f of FS) face([v[f[0]], v[f[1]], v[f[2]], v[f[3]]], rgb, o);
+}
+
+// подписи рисуются после всего: они не часть сцены
+function label(p, text, color, dy) {
+  const q = project(p); if (!q) return;
+  LBL.push(() => {
+    ctx.font = "600 11px system-ui"; ctx.textAlign = "center";
+    ctx.lineWidth = 3; ctx.strokeStyle = "rgba(6,8,12,0.85)";
+    ctx.strokeText(text, q[0], q[1] + (dy || 0));
+    ctx.fillStyle = color;
+    ctx.fillText(text, q[0], q[1] + (dy || 0));
+  });
+}
+
+/* ------------------------- декорации ---------------------------
+   Зал нужен не для красоты. На пустой сетке невозможно понять,
+   где зритель и что вообще происходит; с креслами, подиумом и
+   задней стеной сцена читается с первого взгляда.
+   ВАЖНО: стул как реквизит из сценария УБРАН (§9). Кресла
+   здесь — зал, а не то, на чём вы сидите.                      */
+const CHAIRS = [];
+for (const z of [2.35, 3.15, 3.95]) {
+  const n = z < 3 ? 7 : 9;
+  for (let i = 0; i < n; i++) CHAIRS.push([(i - (n-1)/2) * 0.62, z]);
+}
+
+/* Кресло сознательно собрано из 4 капсул и 2 плоскостей, а не из
+   6 коробок. Коробочная версия давала 36 залитых граней на кресло
+   и 6 600 вызовов canvas на кадр только на мебель — при 25 к/с это
+   съедало кадр целиком. С трёх метров ножка-капсула от ножки-коробки
+   не отличается, а грани двусторонние, поэтому одна плоскость на
+   сиденье и спинку читается с любого ракурса.                     */
+function chair(x, z, cold) {
+  const rgb = cold ? C.chairIce : C.chair;
+  const w = 0.20, dd = 0.19, sy = 0.43, by = 0.88;
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+    const lx = x + sx*w*0.86, lz = z + sz*dd*0.86;
+    limb([lx, 0, lz], [lx, sy, lz], 0.020, 0.018, C.wood);
+  }
+  face([[x-w, sy, z-dd], [x+w, sy, z-dd], [x+w, sy, z+dd], [x-w, sy, z+dd]],
+       rgb, {amb:0.55});
+  face([[x-w, sy, z+dd*0.86], [x+w, sy, z+dd*0.86],
+        [x+w, by, z+dd*1.05], [x-w, by, z+dd*1.05]], rgb, {amb:0.55});
+}
+
+function podium(cold) {
+  const x = -2.05, z = -0.85;
+  box([x, 0.55, z], 0.34, 0.55, 0.26, cold ? C.wallIce : C.wood, {amb:0.5});
+  // наклонная столешница
+  face([[x-0.40,1.10,z+0.30],[x+0.40,1.10,z+0.30],[x+0.40,1.22,z-0.30],[x-0.40,1.22,z-0.30]],
+       C.trim, {amb:0.62});
+  seg([x-0.40,1.10,z+0.30], [x+0.40,1.10,z+0.30], "rgba(201,169,97,0.9)", 2);
+  return [x, 1.35, z];
+}
+
+function backWall(cold) {
+  const rgb = cold ? C.wallIce : C.wall;
+  face([[-4.2,0,-3.4],[4.2,0,-3.4],[4.2,2.6,-3.4],[-4.2,2.6,-3.4]], rgb, {amb:0.85, k:0.72});
+  for (const x of [-3.2, -1.6, 1.6, 3.2])   // пилястры: по одной плоскости
+    face([[x-0.16,0,-3.30],[x+0.16,0,-3.30],[x+0.16,2.7,-3.30],[x-0.16,2.7,-3.30]],
+         rgb, {amb:0.7, k:1.18});
+  // тёмная полоса пола у стены, чтобы стена не «висела»
+  face([[-4.2,0.002,-3.4],[4.2,0.002,-3.4],[4.2,0.002,-2.9],[-4.2,0.002,-2.9]],
+       rgb, {flat:true, k:0.8});
+}
+
+function floorAndGrid(cold) {
+  const fr = cold ? C.floorIce : C.floor;
+  face([[-4.4,0,-3.4],[4.4,0,-3.4],[4.4,0,4.6],[-4.4,0,4.6]], fr, {flat:true, bias:0.9});
+  const n = 8, s = 0.5;
+  const gc = cold ? "rgba(120,170,210,0.16)" : "rgba(150,130,120,0.13)";
+  const gc0 = cold ? "rgba(150,200,235,0.34)" : "rgba(200,160,130,0.28)";
+  for (let i = -n; i <= n; i++) {
+    seg([i*s, 0.004, -n*s], [i*s, 0.004, n*s], i === 0 ? gc0 : gc, 1, {bias:0.6});
+    seg([-n*s, 0.004, i*s], [n*s, 0.004, i*s], i === 0 ? gc0 : gc, 1, {bias:0.6});
+  }
+  // метка на площадке: под тканью видно только пол, метку ищут ногой
+  const m = 0.17, mc = "rgba(217,165,59,0.75)";
+  seg([-m,0.006,-m], [m,0.006,m], mc, 2, {bias:0.4});
+  seg([-m,0.006, m], [m,0.006,-m], mc, 2, {bias:0.4});
+}
+
+function drawIce(t) {
+  for (const p of ICE) {
+    const t0 = p[0], rmax = p[1];
+    if (t < t0) continue;
+    const age = t - t0;
+    const r = Math.min(rmax, age * 2.6);
+    const a = Math.max(0, 1 - age / 8) * 0.85;
+    if (a < 0.02 || r < 0.05) continue;
+    const cx = PLNT_B[0], cz = PLNT_B[2];
+    // залитый диск, потом кольцо и трещины
+    const N = 30, ring = [];
+    for (let k = 0; k < N; k++) {
+      const g = k / N * TAU;
+      const rr = r * (0.86 + 0.14 * Math.cos(g * 5));
+      ring.push([cx + Math.cos(g)*rr, 0.008, cz + Math.sin(g)*rr]);
+    }
+    face(ring, C.bladeI, {flat:true, a: a*0.22, bias:0.3});
+    const col = "rgba(150,205,240," + a.toFixed(3) + ")";
+    for (let k = 0; k < N; k++)
+      seg(ring[k], ring[(k+1) % N], col, 1.6, {bias:0.2});
+    for (let k = 0; k < 14; k++) {
+      const g = k * TAU / 14 + (t0 > 50 ? 0.24 : 0);
+      const rr = r * (0.9 + 0.1 * Math.sin(k * 2.3));
+      seg([cx + Math.cos(g)*rr*0.22, 0.008, cz + Math.sin(g)*rr*0.22],
+          [cx + Math.cos(g)*rr,      0.008, cz + Math.sin(g)*rr], col, 1.2, {bias:0.2});
+    }
+    // осколки торчком — от них лёд читается как объём, а не пятно
+    for (let k = 0; k < 9; k++) {
+      const g = k * TAU / 9 + (t0 > 50 ? 0.5 : 0.15);
+      const rr = r * 0.72;
+      const b = [cx + Math.cos(g)*rr, 0.005, cz + Math.sin(g)*rr];
+      const hgt = 0.10 + 0.16 * ((k % 3) / 2);
+      const w = 0.05;
+      const px = -Math.sin(g)*w, pz = Math.cos(g)*w;
+      face([[b[0]-px,0.005,b[2]-pz], [b[0]+px,0.005,b[2]+pz],
+            [b[0]+Math.cos(g)*0.03, hgt, b[2]+Math.sin(g)*0.03]],
+           C.bladeI, {a:a*0.75, amb:0.45});
+    }
+  }
+}
+
+/* --------------------------- ткань -----------------------------
+   Залитый конус, а не сетка. Смысл первых 13.5 с в том, что из-под
+   ткани НИЧЕГО не видно, а прозрачная сетка это ломала.           */
+function drawCloth(c) {
+  if (!clothOn || c.a < 0.02 || c.h < 0.05) return;
+  const N = 18, M = 9;
+  const prof = (v) => c.r * Math.pow(Math.max(0, 1 - Math.pow(v, 2.2)), 0.4);
+  const pt = (v, k) => {
+    const g = k / N * TAU;
+    const rr = prof(v) * (1 + 0.06 * Math.cos(g * 4));    // складки
+    return [Math.cos(g)*rr, v*c.h, Math.sin(g)*rr + c.z];
+  };
+  for (let j = 0; j < M; j++) {
+    const v0 = j/M, v1 = (j+1)/M;
+    for (let k = 0; k < N; k++) {
+      face([pt(v0,k), pt(v0,k+1), pt(v1,k+1), pt(v1,k)], C.cloth,
+           { amb:0.42, a: c.a, k: 1 - j*0.03 });
+    }
+  }
+  // нижняя кромка с грузом — тёмная, её видно как линию по полу
+  for (let k = 0; k < N; k++)
+    seg(pt(0.015, k), pt(0.015, k+1), "rgba(96,86,66," + (0.9*c.a).toFixed(2) + ")",
+        3, {bias:-0.1});
+}
+
+/* -------------------------- копьё ------------------------------
+   Древко белое, оба конца тёмные, наконечник — гранёное перо с
+   кремово-золотыми крыльями и голубой вставкой, у пятки
+   противовес. Лезвие собрано в двух плоскостях, чтобы читалось
+   с любого ракурса.                                              */
+function drawSpear(sk, cold, noLabel) {
+  const but = sk.spear[0], tip = sk.spear[1];
+  const d = norm(sub(tip, but));
+  let u = cross(d, [0, 1, 0]);
+  if (len(u) < 0.08) u = cross(d, CR);
+  if (len(u) < 0.08) u = [1, 0, 0];
+  u = norm(u);
+  const w = norm(cross(d, u));
+  const P = (s, a, b) => add(add(but, mul(d, s)), add(mul(u, a), mul(w, b)));
+
+  const HEAD = 0.34;                       // длина наконечника
+  const sL = L - HEAD;                     // где кончается древко
+  limb(add(but, mul(d, 0.11)), add(but, mul(d, sL)), 0.017, 0.019,
+       C.shaft, {hi:true});
+  limb(but, add(but, mul(d, 0.11)), 0.024, 0.022, C.shaftD);
+  limb(add(but, mul(d, sL - 0.05)), add(but, mul(d, sL + 0.02)), 0.026, 0.024, C.shaftD);
+  // противовес
+  face([P(0.00, 0.030, 0), P(0.00, -0.030, 0), P(-0.055, 0, 0)], C.shaftD, {amb:0.5});
+  face([P(0.00, 0, 0.030), P(0.00, 0, -0.030), P(-0.055, 0, 0)], C.shaftD, {amb:0.5});
+
+  // перо в двух плоскостях
+  for (const pl of [[1, 0], [0, 1]]) {
+    const A = (s, h) => P(s, h * pl[0], h * pl[1]);
+    const wide = pl[0] ? 0.029 : 0.017;      // уже, иначе перо читается лопаткой
+    face([A(sL + 0.02, 0), A(sL + 0.11,  wide), A(L, 0)], C.blade, {amb:0.45});
+    face([A(sL + 0.02, 0), A(sL + 0.11, -wide), A(L, 0)], C.blade, {amb:0.45});
+    if (pl[0]) {
+      face([A(sL + 0.08, 0), A(sL + 0.15,  0.016), A(L - 0.06, 0)], C.bladeI, {amb:0.6});
+      face([A(sL + 0.08, 0), A(sL + 0.15, -0.016), A(L - 0.06, 0)], C.bladeI, {amb:0.6});
+    }
+  }
+  // золотые крылья у основания пера
+  for (const s of [1, -1]) {
+    face([P(sL + 0.01, s*0.026, 0), P(sL + 0.10, s*0.086, 0.01),
+          P(sL + 0.14, s*0.052, 0.01), P(sL + 0.07, s*0.024, 0)], C.bladeG, {amb:0.5});
+    face([P(sL + 0.01, s*0.022, 0), P(sL - 0.03, s*0.064, -0.01),
+          P(sL + 0.03, s*0.046, -0.01)], C.bladeG, {amb:0.5});
+  }
+  if (labelsOn && !noLabel) {
+    label(add(tip, mul(d, 0.12)), "ОСТРИЕ", cold ? "#bfe6f7" : "#f0c774", 2);
+    label(sub(but, mul(d, 0.14)), "пятка", "#8f7a44", 10);
+  }
+}
+
+/* --------------------- след и вспышки ---------------------------
+   Быстрые движения номера длятся 0.30–0.40 с — это 7–10 кадров при
+   25 к/с. На полной скорости удар просто мелькает, и проверить
+   «ровно ли ведётся копьё» нечем. Лента по пути острия делает дугу
+   видимой целиком.
+   Выборки берутся из poseAt в прошлом, состояние не накапливается,
+   поэтому перемотка даёт тот же след.                             */
+function tipSpeedAt(tt, dt) {
+  const a = poseAt(Math.max(0, tt - dt)), b = poseAt(tt);
+  if ((a.hands < 0.5) !== (b.hands < 0.5)) return 0;   // смена держателя — не скорость
+  return len(sub(spearSeg(b)[1], spearSeg(a)[1])) / dt;
+}
+
+function drawTrail(tt) {
+  // 6 выборок по 0.02 с = 0.12 с истории. На 9 выборках и ширине
+  // в 40% древка лента читалась как крыло и закрывала само копьё.
+  const N = 6, dt = 0.020;
+  const S = [];
+  for (let i = N; i >= 0; i--) {
+    const ta = tt - i * dt;
+    if (ta < 0) continue;
+    const p = poseAt(ta);
+    S.push({ seg: spearSeg(p), h: p.hands < 0.5 });
+  }
+  for (let i = 0; i + 1 < S.length; i++) {
+    const a = S[i], b = S[i+1];
+    if (a.h !== b.h) continue;                 // не сшиваем через переход
+    const v = len(sub(b.seg[1], a.seg[1])) / dt;
+    if (v < 2.2) continue;                     // на медленном не смазываем
+    const u = (i + 1) / S.length;
+    const al = 0.26 * u * Math.min(1, (v - 2.2) / 6);
+    face([a.seg[1], b.seg[1],
+          mix(b.seg[0], b.seg[1], 0.82), mix(a.seg[0], a.seg[1], 0.82)],
+         C.bladeI, { flat:true, a:al, bias:-0.55 });
+  }
+}
+
+function drawFlash(tt, sk) {
+  for (let i = 0; i < HITS.length; i++) {
+    const kind = HITS[i][2];
+    if (kind !== "staff" && kind !== "armor") continue;   // у льда своя графика
+    const d = tt - HITS[i][0];
+    if (d < 0 || d > 0.20) continue;
+    const a = 1 - d / 0.20;
+    const tip = sk.spear[1];
+    const r = 0.10 + d * 1.7;
+    const col = "rgba(255,238,196," + (a * 0.85).toFixed(3) + ")";
+    for (let k = 0; k < 8; k++) {
+      const g = k * TAU / 8 + 0.22;
+      // лучи строятся в плоскости экрана — вспышка видна с любого ракурса
+      const dir = add(mul(CR, Math.cos(g)), mul(CU, Math.sin(g)));
+      seg(add(tip, mul(dir, r * 0.34)), add(tip, mul(dir, r)), col, 2.4, {bias:-0.62});
+    }
+  }
+}
+
+/* ------------------------- фигура ------------------------------ */
+const SPIKES = [
+  [ 0.00, 0.115, 0.052], [-0.055, 0.110,-0.012], [ 0.055, 0.110,-0.012],
+  [-0.095, 0.070, 0.038], [ 0.095, 0.070, 0.038],
+  [-0.105, 0.028,-0.062], [ 0.105, 0.028,-0.062],
+  [-0.032, 0.082,-0.100], [ 0.032, 0.082,-0.100],
+  [-0.118,-0.016, 0.014], [ 0.118,-0.016, 0.014],
+  [ 0.00, 0.034,-0.122],
+  [-0.078, 0.014, 0.076], [ 0.078, 0.014, 0.076],
+  [-0.030, 0.062, 0.098], [ 0.030, 0.062, 0.098],
+];
+
+/* skWas — скелет на 0.10 с раньше. Из него берётся ИНЕРЦИЯ: точка
+   подола, плаща или пряди подтягивается к своему прежнему положению,
+   поэтому при повороте корпуса она отстаёт, а на остановке догоняет.
+   Считается от позы, а не накапливается между кадрами, — поэтому
+   перемотка и пауза дают ровно ту же картинку. */
+function drawFigure(sk, skWas) {
+  const bodyPt = (s, x, y, z) => add(s.chest,
+    add(mul(s.bax, x), add(mul(s.bay, y), mul(s.baz, z))));
+  const headPt = (s, x, y, z) => add(s.head,
+    add(mul(s.hax, x), add(mul(s.hay, y), mul(s.haz, z))));
+  const B  = (x, y, z) => bodyPt(sk, x, y, z);
+  const Hd = (x, y, z) => headPt(sk, x, y, z);
+  const BL = (x, y, z, w) => (!skWas || !w) ? bodyPt(sk, x, y, z)
+    : mix(bodyPt(sk, x, y, z), bodyPt(skWas, x, y, z), w);
+  const HL = (x, y, z, w) => (!skWas || !w) ? headPt(sk, x, y, z)
+    : mix(headPt(sk, x, y, z), headPt(skWas, x, y, z), w);
+
+  /* --- ноги: белые штаны, сапоги выше колена --- */
+  for (const s of [-1, 1]) {
+    const hipJ = s < 0 ? sk.hipL : sk.hipR;
+    const kn   = s < 0 ? sk.knL  : sk.knR;
+    const ft   = s < 0 ? sk.lFoot : sk.rFoot;
+    const thigh = mix(hipJ, kn, 0.34);
+    limb(hipJ, thigh, 0.086, 0.076, C.pants, {hi:true});
+    limb(thigh, kn, 0.076, 0.064, C.boot, {hi:true});
+    limb(kn, ft, 0.063, 0.046, C.boot, {hi:true});
+    const toe = add(ft, mul(sk.fw, 0.130));
+    limb(ft, mix(ft, toe, 0.70), 0.048, 0.036, C.boot, {out:false});
+    limb(mix(ft, toe, 0.62), toe, 0.038, 0.028, C.bootTip, {bias:-0.02});
+    ball(mix(kn, ft, 0.12), 0.016, C.accent, {out:false, bias:-0.03});
+  }
+  // таз тёмный, а не в цвет штанов: белая капсула вылезала из-под
+  // пол пятном на бёдрах и читалась как голое тело
+  limb(sk.hipL, sk.hipR, 0.092, 0.092, C.coatD);
+
+  /* --- корпус: тёмный, поверх узкая кремовая планка жилета --- */
+  limb(sk.hip, sk.chest, 0.132, 0.158, C.coatD, {hi:true});
+  face([B(-0.062, 0.13, 0.152), B(0.062, 0.13, 0.152),
+        B( 0.070,-0.34, 0.136), B(-0.070,-0.34, 0.136)], C.vest,
+       {amb:0.66, bias:-0.03, stroke:INK, lw:1});
+  face([B(-0.013, 0.05, 0.170), B(0.013, 0.05, 0.170),
+        B( 0.013,-0.15, 0.164), B(-0.013,-0.15, 0.164)], C.trim, {amb:0.75, bias:-0.06});
+  face([B(-0.050,-0.02, 0.168), B(0.050,-0.02, 0.168),
+        B( 0.050,-0.05, 0.166), B(-0.050,-0.05, 0.166)], C.trim, {amb:0.75, bias:-0.06});
+
+  /* --- пальто: хвост до колена, две разведённые полы ---
+     Полы намеренно УЖЕ плеч и короче, чем в первой версии: там
+     хвост доставал до 0.41 м от пола и вместе с боковинами
+     смыкался в конус — фигура читалась как ряса, а не как пальто. */
+  const sway = -sk.baz[1] * 0.05;                    // при наклоне хвост отстаёт
+  const T = [                                        // [y, полуширина, z]
+    [ 0.08, 0.198, -0.100],
+    [-0.22, 0.222, -0.130],
+    [-0.52, 0.248, -0.176],
+    [-0.82, 0.256, -0.222 + sway],
+  ];
+  const TW = [0, 0.22, 0.48, 0.72];                  // инерция по ряду
+  for (let i = 0; i < T.length - 1; i++) {
+    const a = T[i], b = T[i+1], wa = TW[i], wb = TW[i+1];
+    face([BL(-a[1], a[0], a[2], wa), BL(a[1], a[0], a[2], wa),
+          BL( b[1], b[0], b[2], wb), BL(-b[1], b[0], b[2], wb)], C.coat,
+         { amb:0.52, k: 1 - i*0.04, stroke: i === T.length - 2 ? INK : null, lw:1 });
+  }
+  for (const s of [-1, 1]) {
+    face([B(s*0.088, 0.130, 0.150), B(s*0.216, 0.098, 0.096),
+          BL(s*0.244,-0.660, 0.044, 0.40), BL(s*0.104,-0.700, 0.102, 0.40)], C.coat,
+         {amb:0.58, stroke:INK, lw:1, bias:-0.02});
+    seg(B(s*0.088, 0.130, 0.150), BL(s*0.104,-0.700, 0.102, 0.40),
+        "rgba(214,180,104,0.9)", 2, {bias:-0.06});
+  }
+  // Воротник-стойка. Верх намеренно на 0.230, а не на 0.290: на
+  // 0.290 он доходил до 1.76 м — вровень с центром головы — и
+  // закрывал лицо тёмной полосой до самых глаз.
+  face([B(-0.098, 0.150, 0.062), B(0.098, 0.150, 0.062),
+        B( 0.122, 0.230,-0.020), B(-0.122, 0.230,-0.020)], C.coat,
+       {amb:0.6, stroke:INK, lw:1});
+
+  /* --- плащ: узкое полотнище за спиной, голубая подбивка по кромке.
+     Плоские «языки» по бокам убраны: на рендере они читались как
+     синяя доска, приставленная к фигуре.                         */
+  const CP = [
+    [ 0.04, 0.200, -0.128],
+    [-0.30, 0.244, -0.196],
+    [-0.66, 0.272, -0.260],
+    [-0.94, 0.280, -0.306 + sway*1.6],
+  ];
+  // плащ легче пальто, поэтому инерции у него больше
+  const CW = [0, 0.36, 0.68, 0.88];
+  for (let i = 0; i < CP.length - 1; i++) {
+    const a = CP[i], b = CP[i+1], wa = CW[i], wb = CW[i+1];
+    face([BL(-a[1], a[0], a[2], wa), BL(a[1], a[0], a[2], wa),
+          BL( b[1], b[0], b[2], wb), BL(-b[1], b[0], b[2], wb)], C.cape,
+         { amb:0.5, k: 1 - i*0.06, bias:0.02 });
+  }
+  const lc = CP[CP.length - 1];
+  face([BL(-lc[1], lc[0], lc[2], 0.88), BL(lc[1], lc[0], lc[2], 0.88),
+        BL( lc[1]*0.94, lc[0]-0.085, lc[2]+0.022, 0.90),
+        BL(-lc[1]*0.94, lc[0]-0.085, lc[2]+0.022, 0.90)], C.capeIn,
+       {amb:0.68, bias:0.02, stroke:INK, lw:1});
+  for (const s of [-1, 1]) {           // узкие языки, а не полотнища
+    face([BL(s*0.196, 0.030,-0.128, 0.06), BL(s*0.252, 0.004,-0.164, 0.10),
+          BL(s*0.268,-0.700,-0.268, 0.86), BL(s*0.212,-0.730,-0.232, 0.86)], C.cape,
+         {amb:0.54, bias:0.03, stroke:INK, lw:1});
+  }
+
+  /* --- наплечники --- */
+  for (const s of [-1, 1]) {
+    face([B(s*0.130, 0.112, 0.086), B(s*0.276, 0.076, 0.052),
+          B(s*0.290,-0.040,-0.052), B(s*0.134, 0.018,-0.096)], C.armor,
+         {amb:0.56, stroke:INK, lw:1});
+    seg(B(s*0.276, 0.076, 0.052), B(s*0.290,-0.040,-0.052),
+        "rgba(214,180,104,0.85)", 2, {bias:-0.05});
+    face([B(s*0.286, 0.056, 0.008), B(s*0.404, 0.014, 0.018),
+          B(s*0.286,-0.024,-0.018)], C.armor, {amb:0.5, stroke:INK, lw:1});
+  }
+
+  /* --- руки: рукава СВЕТЛЕЕ пальто плюс обводка. Иначе рука,
+     висящая вдоль тела, полностью сливается с корпусом — в первой
+     версии фигура вышла безрукой.                                 */
+  for (const s of [-1, 1]) {
+    const sh = s < 0 ? sk.shL : sk.shR;
+    const elb = s < 0 ? sk.elL : sk.elR;
+    const hd = s < 0 ? sk.lHand : sk.rHand;
+    limb(sh, elb, 0.056, 0.048, C.sleeve, {hi:true, bias:-0.04});
+    limb(elb, mix(elb, hd, 0.76), 0.048, 0.038, C.sleeve, {hi:true, bias:-0.05});
+    limb(mix(elb, hd, 0.70), hd, 0.041, 0.034, C.glove, {bias:-0.06});
+    ball(hd, 0.042, C.glove, {grad:true, bias:-0.07});
+    if (sk.palm > 0.5) {                     // раскрытая расслабленная кисть
+      const a = Math.min(1, (sk.palm - 0.5) * 2);
+      for (const dx of [-0.040, -0.013, 0.013, 0.040]) {
+        const f = add(hd, rotY([dx, -0.094, 0.020], sk.yaw));
+        limb(hd, f, 0.013 * a, 0.009 * a, C.glove, {out:false, bias:-0.09});
+      }
+    }
+  }
+
+  /* --- голова: череп, лицо в обрамлении волос, мятные шипы --- */
+  limb(sk.neck, sk.head, 0.052, 0.058, C.skin, {bias:0.02});
+  ball(Hd(0, 0.016, -0.016), 0.122, C.hair, {grad:true, bias:0.014});
+  ball(sk.head, 0.110, C.skin, {grad:true, out:false});
+  // чёлка: прикрывает только верх лица, глаза остаются ниже её кромки
+  face([Hd(-0.106, 0.062, 0.046), Hd(0.106, 0.062, 0.046),
+        Hd( 0.088, 0.012, 0.090), Hd(-0.088, 0.012, 0.090)], C.hair,
+       {amb:0.62, bias:-0.04, stroke:INK, lw:1});
+  for (const s of [-1, 1]) {
+    ball(Hd(s*0.038, -0.024, 0.098), 0.012, C.eye, {out:false, bias:-0.06});
+    // прядь у виска
+    face([Hd(s*0.094, 0.050, 0.028), Hd(s*0.112, 0.006, 0.056),
+          Hd(s*0.074,-0.118, 0.066)], C.hair2, {amb:0.58, bias:-0.05});
+  }
+  for (let i = 0; i < SPIKES.length; i++) {
+    const v = SPIKES[i];
+    const dir3 = norm(v);
+    const apex = HL(v[0]*1.72, v[1]*1.72, v[2]*1.72, 0.30);   // прядь отстаёт
+    let per = cross(dir3, [0, 1, 0]);
+    if (len(per) < 0.1) per = [1, 0, 0];
+    per = mul(norm(per), 0.040);
+    const bc = [v[0]*0.72, v[1]*0.72, v[2]*0.72];
+    face([Hd(bc[0]+per[0], bc[1]+per[1], bc[2]+per[2]),
+          Hd(bc[0]-per[0], bc[1]-per[1], bc[2]-per[2]),
+          apex], i % 2 ? C.hair : C.hair2, {amb:0.5, bias:-0.01});
+  }
+  // куда смотрит — тонкой линией, для проверки наклона головы
+  seg(sk.head, sk.gaze, "rgba(111,179,217,0.55)", 2, {bias:-0.1});
+}
+
+/* ------------------------- время -------------------------------
+   Часы считаются от ЯКОРЯ (абсолютной метки performance.now()),
+   а не складыванием шагов между кадрами. Проверено замером:
+   браузер режет частоту таймеров у неактивной вкладки, и
+   накопление шагов теряет реальное время — на фоне за 1.20 с
+   успевало натикать только 0.75 с. Раскадровка — прибор для
+   тайминга, отставать ей нельзя.                                */
+let t = 0, running = false, rate = 1;
+let anchor = performance.now(), anchorT = 0;
+function reanchor() { anchorT = t; anchor = performance.now(); }
+
+let audioMode = false, fileName = "", objUrl = null;
+const audio = el("audio");
+let clothOn = true, labelsOn = true, idleOn = false;
+
+/* Идл — микродвижение на удержаниях: дыхание ±4 мм и перенос веса
+   меньше градуса. ВЫКЛЮЧЕН ПО УМОЛЧАНИЮ, и это не лень.
+   Сценарий требует на удержаниях «ни одного движения» (§4, §8), а
+   раскадровка — инструкция исполнителю: если фигура дышит, дышать
+   заметно будет и он. Кнопка нужна для другого — посмотреть, как
+   номер выглядит живым, не меняя того, что написано в задании. */
+function pose(tt) {
+  const q = poseAt(tt);
+  if (!idleOn) return q;
+  q.rootY += Math.sin(tt * 1.35) * 0.004;
+  q.lean  += Math.sin(tt * 0.62) * 0.5;
+  q.twist += Math.sin(tt * 0.43 + 1.1) * 0.6;
+  return q;
+}
+
+function currentRow(tt) {
+  let i = 0;
+  for (let j = 0; j < ROWS.length; j++) if (ROWS[j][0] <= tt + 1e-6) i = j;
+  return i;
+}
+function currentBlock(tt) {
+  let i = 0;
+  for (let j = 0; j < BLOCKS.length; j++) if (BLOCKS[j].t0 <= tt + 1e-6) i = j;
+  return i;
+}
+function currentSound(tt) {
+  for (const s of SOUNDS) if (tt >= s[0] - 1e-6 && tt < s[1]) return s[2];
+  return SOUNDS[SOUNDS.length - 1][2];
+}
+
+/* --------------------- построение панелей ---------------------- */
+const blocksBox = el("blocks");
+BLOCKS.forEach((b, i) => {
+  const btn = document.createElement("button");
+  btn.className = "blk"; btn.dataset.b = i;
+  btn.innerHTML = "<b>" + (i + 1) + ". " + b.name + "</b><span>" +
+                  fmt(b.t0) + " – " + fmt(b.t1) + "</span>";
+  btn.addEventListener("click", () => seek(b.t0));
+  blocksBox.appendChild(btn);
+});
+
+const trBox = el("tr");
+const rowEls = ROWS.map((r, i) => {
+  const d = document.createElement("div");
+  d.className = "row";
+  const k = KIND[r[3]];
+  d.innerHTML = '<div class="tc">' + fmt(r[0]) +
+                '<span class="k" style="color:' + k.color + '">' + k.label + "</span></div>" +
+                '<div><div class="ti">' + r[4] + '</div><div class="tx">' + r[5] + "</div>" +
+                '<div class="sc">' + r[6] + "</div></div>";
+  d.addEventListener("click", () => seek(r[0]));
+  trBox.appendChild(d);
+  return d;
+});
+
+const strip = el("strip");
+ROWS.forEach((r) => {
+  const s = document.createElement("div");
+  s.className = "seg";
+  s.style.left = (r[0] / TOTAL * 100) + "%";
+  s.style.width = Math.max(0.25, (r[1] - r[0]) / TOTAL * 100) + "%";
+  s.style.background = KIND[r[3]].color;
+  strip.appendChild(s);
+});
+BLOCKS.forEach((b) => {
+  if (b.t0 === 0) return;
+  const s = document.createElement("div");
+  s.className = "bnd"; s.style.left = (b.t0 / TOTAL * 100) + "%";
+  strip.appendChild(s);
+});
+
+/* ------------------------- отрисовка --------------------------- */
+let lastRow = -1, lastBlock = -1, lastSound = "";
+
+function background(w) {
+  // фон отвечает за половину «понятно, что происходит»: тёплый
+  // красный зал до 49.6 и холодный лёд после
+  const g = ctx.createRadialGradient(W*0.5, H*0.42, 20, W*0.5, H*0.5, Math.max(W, H)*0.78);
+  const c0 = [58 + (12-58)*w, 26 + (52-26)*w, 28 + (78-28)*w];
+  const c1 = [11 + (6-11)*w,  13 + (11-13)*w, 18 + (18-18)*w];
+  g.addColorStop(0, "rgb(" + c0.map(Math.round).join(",") + ")");
+  g.addColorStop(1, "rgb(" + c1.map(Math.round).join(",") + ")");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+
+function draw() {
+  if (!W) resize();
+  setCam();
+  /* 0 — красный зал, 1 — лёд. Декорации переключаются РОВНО на
+     49.60, потому что разряд мгновенный, а фон и общий тон
+     переезжают за 0.40 с — как фильтр, который в это же время
+     доводит музыку с 12000 до 300 Гц. Раньше тон снапал на w>0.5,
+     то есть на 0.2 с позже разряда, и это был видимый щелчок. */
+  const w = Math.max(0, Math.min(1, (t - FLIP) / 0.40));
+  const cold = t >= FLIP;
+  background(w);
+
+  floorAndGrid(cold);
+  backWall(cold);
+  const podTop = podium(cold);
+  for (const c of CHAIRS) chair(c[0], c[1], cold);
+  drawIce(t);
+
+  const p = pose(t);
+  const sk = skeleton(p);
+  const skWas = skeleton(pose(Math.max(0, t - LAG_DT)));     // для инерции
+  const vTip = tipSpeedAt(t, 0.04);
+
+  // Смазанный силуэт — только на быстрых кадрах. За всю минуту это
+  // около 0.9 с, поэтому лишней работы почти нет.
+  if (vTip > 3.0) {
+    ALPHA = 0.26;
+    const tg = Math.max(0, t - SMEAR);
+    drawFigure(skeleton(pose(tg)), skeleton(pose(Math.max(0, tg - LAG_DT))));
+    drawSpear(skeleton(pose(tg)), cold, true);
+    ALPHA = 1;
+  }
+  drawTrail(t);
+  drawFigure(sk, skWas);
+  drawSpear(sk, cold);
+  drawFlash(t, sk);
+  drawCloth(sk.cloth);              // после фигуры: она под тканью
+
+  if (labelsOn) {
+    label(podTop, "ВЕДУЩИЙ", cold ? "#8fb4cf" : "#c99a6a", 0);
+    label([0, 0.02, 2.02], "ЗАЛ", "#7b8496", 14);
+    label([0, 0.02, -0.30], "метка", "rgba(217,165,59,0.8)", 12);
+    if (clothOn && sk.cloth.h > 1.2) label([0, sk.cloth.h + 0.10, 0], "ТКАНЬ", "#c9bb9d", -4);
+  }
+  flush();
+
+  // единый тон поверх всего — переворот палитры одним движением
+  ctx.save();
+  ctx.globalAlpha = 0.10;
+  ctx.fillStyle = "rgb(" + Math.round(150 + (96 - 150) * w) + "," +
+                           Math.round( 52 + (166 - 52) * w) + "," +
+                           Math.round( 42 + (222 - 42) * w) + ")";
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+
+  el("clock").textContent = fmt(t);
+  // скорость острия — заодно проверка, что «быстро» действительно быстро
+  el("spd").textContent = "острие " + vTip.toFixed(1) + " м/с";
+  el("spd").className = vTip > 3.0 ? "fast" : "";
+  el("fill").style.width = (t / TOTAL * 100) + "%";
+  el("head").style.left = (t / TOTAL * 100) + "%";
+
+  const bi = currentBlock(t);
+  if (bi !== lastBlock) {
+    lastBlock = bi;
+    el("blockName").textContent = "блок " + (bi + 1) + " · " + BLOCKS[bi].name;
+    [...document.querySelectorAll(".blk")].forEach((b, j) =>
+      b.classList.toggle("on", j === bi));
+  }
+
+  const ri = currentRow(t);
+  if (ri !== lastRow) {
+    lastRow = ri;
+    const r = ROWS[ri], k = KIND[r[3]];
+    el("badge").textContent = k.label;
+    el("badge").style.background = k.color;
+    el("capTitle").textContent = r[4];
+    el("capText").textContent = r[6];
+    rowEls.forEach((d, j) => {
+      d.classList.toggle("on", j === ri);
+      d.classList.toggle("past", j < ri);
+    });
+    const d = rowEls[ri];
+    const top = d.offsetTop, bot = top + d.offsetHeight;
+    if (top < trBox.scrollTop || bot > trBox.scrollTop + trBox.clientHeight)
+      trBox.scrollTop = Math.max(0, top - trBox.clientHeight * 0.35);
+  }
+  const r = ROWS[ri];
+  const left = r[1] - t;
+  el("next").textContent = t >= TOTAL ? "номер закончен"
+    : "до конца пункта " + left.toFixed(2) + " с   ·   до конца номера " +
+      (TOTAL - t).toFixed(2) + " с";
+
+  const snd = currentSound(t);
+  if (snd !== lastSound) {
+    lastSound = snd;
+    el("sound").innerHTML = "звучит: <b>" + snd + "</b>";
+  }
+}
+
+function tick() {
+  if (audioMode) {
+    const c = audio.currentTime;
+    if (isFinite(c)) t = Math.max(0, Math.min(TOTAL, c));
+  } else if (running) {
+    t = anchorT + (performance.now() - anchor) / 1000 * rate;
+    if (t >= TOTAL) { t = TOTAL; setRunning(false); }
+  }
+  draw();
+}
+// ВАЖНО: setInterval, не requestAnimationFrame — rAF браузер
+// останавливает, когда считает страницу невидимой (окно
+// предпросмотра, неактивная вкладка), и страница выглядит сломанной.
+setInterval(tick, 40);
+document.addEventListener("visibilitychange", draw);
+
+/* ------------------------ управление --------------------------- */
+function setPlayUI(on) {
+  running = on;
+  el("play").textContent = on ? "Пауза" : "Пуск";
+  el("play").classList.toggle("on", on);
+}
+function setRunning(on) {
+  if (audioMode) {
+    if (on) {
+      // play() возвращает промис, и он ОТКЛОНЯЕТСЯ политикой автозапуска.
+      // Молчать нельзя — иначе страница выглядит мёртвой.
+      const p = audio.play();
+      if (p && p.catch) p.catch((e) => fail(
+        "браузер не дал запустить звук сам (" + ((e && e.name) || "NotAllowedError") +
+        "). Нажмите «Пуск» ещё раз — это будет ваш клик, и звук пойдёт. " +
+        "Раскадровка при этом жива, можно смотреть без звука кнопкой «Без звука»."));
+    } else audio.pause();
+    return;                        // running обновят события play / pause
+  }
+  setPlayUI(on);
+  reanchor();
+}
+function seek(x) {
+  t = Math.max(0, Math.min(TOTAL, x));
+  if (audioMode) {
+    // Перемотка работает только потому, что источник — blob из
+    // URL.createObjectURL. Файл, отданный сервером без поддержки
+    // Range-запросов, перематываться молча отказывается.
+    try { audio.currentTime = t; }
+    catch (e) { fail("не удалось перемотать звук: " + e.message); }
+  } else reanchor();
+  lastRow = lastBlock = -1; lastSound = "";
+  draw();
+}
+el("play").addEventListener("click", () => setRunning(!running));
+el("restart").addEventListener("click", () => { seek(0); setRunning(true); });
+el("slow").addEventListener("click", () => {
+  rate = rate === 1 ? 0.5 : 1;
+  if (audioMode) audio.playbackRate = rate;
+  else reanchor();                  // без этого при смене скорости время прыгает
+  el("slow").textContent = rate === 1 ? "0.5x" : "0.5x вкл";
+  el("slow").classList.toggle("on", rate !== 1);
+});
+el("cloth").addEventListener("click", () => {
+  clothOn = !clothOn;
+  el("cloth").classList.toggle("on", !clothOn);
+  el("cloth").textContent = clothOn ? "Ткань" : "Ткань скрыта";
+  draw();
+});
+el("idle").addEventListener("click", () => {
+  idleOn = !idleOn;
+  el("idle").classList.toggle("on", idleOn);
+  el("idle").textContent = idleOn ? "Идл ВКЛ" : "Идл выкл";
+  draw();
+});
+el("lbl").addEventListener("click", () => {
+  labelsOn = !labelsOn;
+  el("lbl").classList.toggle("on", !labelsOn);
+  el("lbl").textContent = labelsOn ? "Подписи" : "Без подписей";
+  draw();
+});
+
+/* --------------------- загрузка дорожки ------------------------ */
+function warn(m) { const b = el("warn"); b.style.display = "block"; b.textContent = m; }
+function clearWarn() { const b = el("warn"); b.style.display = "none"; b.textContent = ""; }
+
+function setSrcLabel() {
+  const s = el("src");
+  if (!audioMode) {
+    s.textContent = "часы: внутренние · звук не загружен";
+    s.className = "";
+    el("unload").style.display = "none";
+    el("pick").textContent = "Загрузить звук";
+    return;
+  }
+  const d = isFinite(audio.duration) ? audio.duration.toFixed(3) + " с" : "длительность ?";
+  s.textContent = "часы: ФАЙЛ · " + fileName + " · " + d;
+  s.className = "aud";
+  el("unload").style.display = "";
+  el("pick").textContent = "Другой файл";
+}
+
+function loadAudio(file) {
+  if (!file) return;
+  const looksAudio = /^audio\//i.test(file.type || "") || /\.(wav|mp3|m4a|ogg|flac|aac)$/i.test(file.name);
+  if (!looksAudio) {
+    warn("«" + file.name + "» не похож на аудиофайл. Нужен master_v3.wav или master_v3.mp3 " +
+         "из папки output. Раскадровка продолжает идти по внутренним часам.");
+    return;
+  }
+  const wasRunning = running;
+  if (wasRunning) setRunning(false);
+  if (objUrl) URL.revokeObjectURL(objUrl);
+  objUrl = URL.createObjectURL(file);       // blob: только так работает перемотка
+  audioMode = true;
+  fileName = file.name;
+  clearWarn();
+  audio.src = objUrl;
+  audio.playbackRate = rate;
+  audio.load();
+  setSrcLabel();
+  setPlayUI(false);
+  seek(0);
+}
+
+function unloadAudio() {
+  audio.pause();
+  audio.removeAttribute("src");
+  audio.load();
+  if (objUrl) { URL.revokeObjectURL(objUrl); objUrl = null; }
+  audioMode = false; fileName = "";
+  clearWarn();
+  setPlayUI(false);
+  seek(0);
+  setSrcLabel();
+}
+
+audio.addEventListener("loadedmetadata", () => {
+  setSrcLabel();
+  const d = audio.duration;
+  if (!isFinite(d)) {
+    warn("Браузер не смог определить длительность файла. Синхронизацию проверьте на слух.");
+    return;
+  }
+  const off = d - TOTAL;
+  if (Math.abs(off) > 0.05) {
+    warn("Длительность файла " + d.toFixed(3) + " с, а раскадровка рассчитана на " +
+         TOTAL.toFixed(2) + " с — расхождение " + (off > 0 ? "+" : "") + off.toFixed(3) +
+         " с. Это НЕ та дорожка (похоже на master_v2 длиной 103 с?), синхронизации не будет: " +
+         "движения показываются по своим таймкодам. Возьмите master_v3.wav или master_v3.mp3.");
+  } else clearWarn();
+});
+audio.addEventListener("play",  () => setPlayUI(true));
+audio.addEventListener("pause", () => setPlayUI(false));
+audio.addEventListener("ended", () => setPlayUI(false));
+audio.addEventListener("error", () => {
+  const c = audio.error && audio.error.code;
+  fail("не удалось прочитать звуковой файл" + (c ? " (код " + c + ")" : "") +
+       ". Возможно, браузер не понимает этот формат — попробуйте master_v3.mp3.");
+});
+
+el("pick").addEventListener("click", () => { el("file").click(); el("pick").blur(); });
+el("file").addEventListener("change", (e) => {
+  loadAudio(e.target.files && e.target.files[0]);
+  e.target.value = "";              // чтобы тот же файл можно было выбрать снова
+});
+el("unload").addEventListener("click", unloadAudio);
+
+document.addEventListener("dragover", (e) => {
+  e.preventDefault(); document.body.classList.add("dragging");
+});
+document.addEventListener("dragleave", (e) => {
+  if (!e.relatedTarget) document.body.classList.remove("dragging");
+});
+document.addEventListener("drop", (e) => {
+  e.preventDefault(); document.body.classList.remove("dragging");
+  loadAudio(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]);
+});
+el("full").addEventListener("click", () => document.fullscreenElement
+  ? document.exitFullscreen() : document.documentElement.requestFullscreen());
+
+const seekFrom = (e, node) => {
+  const b = node.getBoundingClientRect();
+  seek((e.clientX - b.left) / b.width * TOTAL);
+};
+el("bar").addEventListener("click", (e) => seekFrom(e, el("bar")));
+strip.addEventListener("click", (e) => seekFrom(e, strip));
+
+function setView(i) {
+  cam = { ...VIEWS[i] };
+  [...document.querySelectorAll("#views button")].forEach((b, j) =>
+    b.classList.toggle("on", i === j));
+  draw();
+}
+document.querySelectorAll("#views button").forEach((b) =>
+  b.addEventListener("click", () => setView(+b.dataset.v)));
+setView(1);
+
+let drag = null;
+cv.addEventListener("pointerdown", (e) => {
+  drag = { x:e.clientX, y:e.clientY, az:cam.az, el:cam.el };
+  cv.setPointerCapture(e.pointerId);
+});
+cv.addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  cam.az = drag.az - (e.clientX - drag.x) * 0.4;
+  cam.el = Math.max(-8, Math.min(85, drag.el + (e.clientY - drag.y) * 0.3));
+});
+cv.addEventListener("pointerup", () => { drag = null; });
+cv.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  cam.d = Math.max(1.6, Math.min(14, cam.d + Math.sign(e.deltaY) * 0.35));
+}, { passive:false });
+
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") { e.preventDefault(); setRunning(!running); }
+  else if (e.code === "ArrowLeft")  seek(t - 1);
+  else if (e.code === "ArrowRight") seek(t + 1);
+  else if (e.key === "r" || e.key === "R") { seek(0); setRunning(true); }
+  else if (e.key === "s" || e.key === "S") el("slow").click();
+  else if (e.key === "f" || e.key === "F") el("full").click();
+  else if (e.key === "t" || e.key === "T") el("cloth").click();
+  else if (e.key === "i" || e.key === "I") el("idle").click();
+  else if (e.key >= "1" && e.key <= "6") setView(+e.key - 1);
+});
+
+resize();
+setSrcLabel();
+seek(0);
+setRunning(false);
+} catch (e) {
+  fail((e && e.message ? e.message : String(e)) + "\n" + (e && e.stack ? e.stack : ""));
+}
+</script>
+</body>
+</html>
