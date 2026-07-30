@@ -217,7 +217,8 @@
       "required": false,
       "pan": 0.0,
       "normalize_source": true,
-      "note": "Продано."
+      "trim_silence": true,
+      "note": "Продано. Реплика длится 0.959 с, поэтому молоток сдвинут с 00:40.500 на 00:41.200: удар должен звучать в тишине после слова, а не внутри него — это единственный триггер, по которому исполнитель начинает вставать (§4)."
     },
     {
       "id": "lohen_reveal",
@@ -227,7 +228,8 @@
       "required": false,
       "pan": 0.0,
       "normalize_source": true,
-      "note": "Раскрытие."
+      "trim_silence": true,
+      "note": "Раскрытие. Пауза между фразами расширена с 0.67 до 1.27 с: на ней исполнитель освобождает руки, и по §4 действие привязано к словам внутри второй фразы, поэтому ей нужен чистый старт."
     },
     {
       "id": "lohen_final_question",
@@ -237,6 +239,7 @@
       "required": false,
       "pan": 0.0,
       "normalize_source": true,
+      "trim_silence": true,
       "note": "Финальный вопрос."
     },
     {
@@ -247,6 +250,7 @@
       "required": false,
       "pan": 0.0,
       "normalize_source": true,
+      "trim_silence": true,
       "note": "Финальная реплика, поверх замороженного зала."
     },
     {
@@ -298,7 +302,7 @@
       "id": "auction_gavel",
       "stem": "sfx",
       "file": "assets/ambience/auction_gavel.wav",
-      "start": "00:40.500",
+      "start": "00:41.200",
       "required": true,
       "loop": false,
       "gain_db": -6.0,

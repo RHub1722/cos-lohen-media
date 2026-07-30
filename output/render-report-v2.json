@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-30T07:44:32Z",
+  "generated_at": "2026-07-30T09:05:10Z",
   "project_root": "audio-project",
   "environment": {
     "python": "3.12.10",
@@ -40,30 +40,30 @@
     "sample_rate": 48000,
     "channels": 2,
     "codec": "pcm_s24le",
-    "peak_dbfs": -2.32,
+    "peak_dbfs": -2.39,
     "mp3": "output/master_v2.mp3"
   },
   "loudness": {
     "normalization_applied": true,
     "target_lufs": -16.0,
-    "effective_target_lufs": -17.34,
-    "requested_gain_db": 8.62,
-    "applied_gain_db": 7.28,
+    "effective_target_lufs": -16.7,
+    "requested_gain_db": 7.68,
+    "applied_gain_db": 6.98,
     "gain_capped": true,
     "cap_reason": "preserve_dynamics",
     "normalization_type": "linear",
-    "max_linear_gain_db": 7.28,
+    "max_linear_gain_db": 6.98,
     "measured_before": {
-      "integrated_lufs": -24.62,
-      "true_peak_db": -9.58,
-      "lra_lu": 16.9,
-      "threshold_lufs": -39.56
+      "integrated_lufs": -23.68,
+      "true_peak_db": -9.28,
+      "lra_lu": 16.2,
+      "threshold_lufs": -38.15
     },
     "measured_after": {
-      "integrated_lufs": -17.38,
+      "integrated_lufs": -16.73,
       "true_peak_db": -2.3,
-      "lra_lu": 16.7,
-      "threshold_lufs": -32.56
+      "lra_lu": 15.8,
+      "threshold_lufs": -31.4
     }
   },
   "ducking": {
@@ -87,6 +87,22 @@
       {
         "start": "00:29.000",
         "end": "00:34.257"
+      },
+      {
+        "start": "00:40.000",
+        "end": "00:40.990"
+      },
+      {
+        "start": "00:48.000",
+        "end": "00:52.910"
+      },
+      {
+        "start": "01:20.000",
+        "end": "01:21.030"
+      },
+      {
+        "start": "01:29.000",
+        "end": "01:30.490"
       }
     ],
     "accent_windows": [
@@ -165,14 +181,13 @@
       "events": [
         "auctioneer_intro",
         "buyer_suspicious",
-        "lohen_notice"
-      ],
-      "skipped_events": [
+        "lohen_notice",
         "auctioneer_sold",
         "lohen_reveal",
         "lohen_final_question",
         "lohen_final_line"
-      ]
+      ],
+      "skipped_events": []
     },
     {
       "name": "sfx",
@@ -329,8 +344,32 @@
           "db": -27.0
         },
         {
+          "t": "00:40.080",
+          "db": -35.04
+        },
+        {
+          "t": "00:40.990",
+          "db": -35.5
+        },
+        {
+          "t": "00:41.290",
+          "db": -27.64
+        },
+        {
           "t": "00:48.000",
           "db": -31.0
+        },
+        {
+          "t": "00:48.080",
+          "db": -38.95
+        },
+        {
+          "t": "00:52.910",
+          "db": -35.73
+        },
+        {
+          "t": "00:53.210",
+          "db": -27.53
         },
         {
           "t": "00:57.000",
@@ -354,6 +393,18 @@
         },
         {
           "t": "01:20.000",
+          "db": -36.0
+        },
+        {
+          "t": "01:20.080",
+          "db": -44.0
+        },
+        {
+          "t": "01:21.030",
+          "db": -44.0
+        },
+        {
+          "t": "01:21.330",
           "db": -36.0
         },
         {
@@ -441,6 +492,38 @@
           "db": -25.0
         },
         {
+          "t": "00:40.000",
+          "db": -25.0
+        },
+        {
+          "t": "00:40.080",
+          "db": -31.0
+        },
+        {
+          "t": "00:40.990",
+          "db": -31.0
+        },
+        {
+          "t": "00:41.290",
+          "db": -25.0
+        },
+        {
+          "t": "00:48.000",
+          "db": -25.0
+        },
+        {
+          "t": "00:48.080",
+          "db": -31.0
+        },
+        {
+          "t": "00:52.910",
+          "db": -31.0
+        },
+        {
+          "t": "00:53.210",
+          "db": -25.0
+        },
+        {
           "t": "00:57.000",
           "db": -25.0
         },
@@ -467,6 +550,18 @@
         {
           "t": "01:20.000",
           "db": -26.0
+        },
+        {
+          "t": "01:20.080",
+          "db": -32.04
+        },
+        {
+          "t": "01:21.030",
+          "db": -32.49
+        },
+        {
+          "t": "01:21.330",
+          "db": -26.64
         },
         {
           "t": "01:28.350",
@@ -648,11 +743,50 @@
       "note": "Щелчок оков. normalize_source=true: -12.0 читается как абсолютный уровень (с общим запасом mix.absolute_headroom_db)."
     },
     {
+      "id": "auctioneer_sold",
+      "stem": "voices",
+      "file": "assets/voices/auctioneer_sold.wav",
+      "start": "00:40.000",
+      "end": "00:40.990",
+      "duration_seconds": 0.99,
+      "source_duration_seconds": 2.0,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": {
+        "start": 10,
+        "end": 1000
+      },
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -3.32,
+        "normalize_source": true,
+        "source_compensation_db": -6.28,
+        "max_envelope_db": 0.0,
+        "expected_peak_dbfs": -9.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:40.000",
+          "db": 0.0
+        },
+        {
+          "t": "00:40.990",
+          "db": 0.0
+        }
+      ],
+      "note": "Продано. Реплика длится 0.959 с, поэтому молоток сдвинут с 00:40.500 на 00:41.200: удар должен звучать в тишине после слова, а не внутри него — это единственный триггер, по которому исполнитель начинает вставать (§4)."
+    },
+    {
       "id": "auction_gavel",
       "stem": "sfx",
       "file": "assets/ambience/auction_gavel.wav",
-      "start": "00:40.500",
-      "end": "00:42.180",
+      "start": "00:41.200",
+      "end": "00:42.880",
       "duration_seconds": 1.68,
       "source_duration_seconds": 1.68,
       "looped": false,
@@ -673,15 +807,54 @@
       },
       "envelope_db": [
         {
-          "t": "00:40.500",
+          "t": "00:41.200",
           "db": -6.0
         },
         {
-          "t": "00:42.180",
+          "t": "00:42.880",
           "db": -6.0
         }
       ],
       "note": "Удар молотка. Исходник тихий (пик -16.2 dBFS), поэтому normalize_source=true: -6.0 читается как абсолютный уровень плюс общий запас mix.absolute_headroom_db, то есть -15.6 dBFS. Это самое громкое событие дорожки, и после нормализации master оно выходит на потолок, не будучи расплющенным лимитером."
+    },
+    {
+      "id": "lohen_reveal",
+      "stem": "voices",
+      "file": "assets/voices/lohen_reveal.wav",
+      "start": "00:48.000",
+      "end": "00:52.910",
+      "duration_seconds": 4.91,
+      "source_duration_seconds": 4.92,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": {
+        "start": 10,
+        "end": 0
+      },
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -6.22,
+        "normalize_source": true,
+        "source_compensation_db": -3.38,
+        "max_envelope_db": 0.0,
+        "expected_peak_dbfs": -9.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:48.000",
+          "db": 0.0
+        },
+        {
+          "t": "00:52.910",
+          "db": 0.0
+        }
+      ],
+      "note": "Раскрытие. Пауза между фразами расширена с 0.67 до 1.27 с: на ней исполнитель освобождает руки, и по §4 действие привязано к словам внутри второй фразы, поэтому ей нужен чистый старт."
     },
     {
       "id": "crowd_gasp",
@@ -1342,6 +1515,45 @@
       "note": "Завершающий удар боя. Сразу после него толпа гасится огибающей crowd_fleeing. Ледяные эффекты здесь не используются."
     },
     {
+      "id": "lohen_final_question",
+      "stem": "voices",
+      "file": "assets/voices/lohen_final_question.wav",
+      "start": "01:20.000",
+      "end": "01:21.030",
+      "duration_seconds": 1.03,
+      "source_duration_seconds": 1.04,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": {
+        "start": 10,
+        "end": 0
+      },
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -9.62,
+        "normalize_source": true,
+        "source_compensation_db": 0.02,
+        "max_envelope_db": 0.0,
+        "expected_peak_dbfs": -9.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:20.000",
+          "db": 0.0
+        },
+        {
+          "t": "01:21.030",
+          "db": 0.0
+        }
+      ],
+      "note": "Финальный вопрос."
+    },
+    {
       "id": "frozen_hall",
       "stem": "ambience",
       "file": "assets/ambience/frozen_hall_ambience.wav",
@@ -1371,7 +1583,19 @@
           "db": -28.0
         },
         {
+          "t": "01:29.080",
+          "db": -33.44
+        },
+        {
           "t": "01:30.000",
+          "db": -27.0
+        },
+        {
+          "t": "01:30.490",
+          "db": -27.0
+        },
+        {
+          "t": "01:30.790",
           "db": -21.0
         },
         {
@@ -1400,6 +1624,45 @@
         }
       ],
       "note": "Замороженный зал. Файл длиннее окна — обрезается; если подставить более короткий, будет зациклен мягким кроссфейдом."
+    },
+    {
+      "id": "lohen_final_line",
+      "stem": "voices",
+      "file": "assets/voices/lohen_final_line.wav",
+      "start": "01:29.000",
+      "end": "01:30.490",
+      "duration_seconds": 1.49,
+      "source_duration_seconds": 1.52,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": {
+        "start": 20,
+        "end": 10
+      },
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -6.24,
+        "normalize_source": true,
+        "source_compensation_db": -3.36,
+        "max_envelope_db": 0.0,
+        "expected_peak_dbfs": -9.6
+      },
+      "envelope_db": [
+        {
+          "t": "01:29.000",
+          "db": 0.0
+        },
+        {
+          "t": "01:30.490",
+          "db": 0.0
+        }
+      ],
+      "note": "Финальная реплика, поверх замороженного зала."
     },
     {
       "id": "freeze_spreading",
@@ -1431,7 +1694,19 @@
       "envelope_db": [
         {
           "t": "01:29.050",
-          "db": -20.0
+          "db": -23.12
+        },
+        {
+          "t": "01:29.080",
+          "db": -24.86
+        },
+        {
+          "t": "01:30.490",
+          "db": -18.35
+        },
+        {
+          "t": "01:30.790",
+          "db": -11.97
         },
         {
           "t": "01:31.000",
@@ -1549,37 +1824,16 @@
       "note": "Резонансный хвост сразу за ударом. Стем sfx: §12 относит «ледяной хвост» к sfx_v2. В исходнике тишины в конце нет — хвост идёт до последнего сэмпла, поэтому обрезается только 12 мс в начале. К 01:43.000 огибающая уводит его в полную тишину."
     }
   ],
-  "missing_optional_assets": [
+  "missing_optional_assets": [],
+  "suspicious_assets": [
     {
       "id": "auctioneer_sold",
-      "stem": "voices",
       "file": "assets/voices/auctioneer_sold.wav",
-      "expected_start": "00:40.000",
-      "reason": "файл не найден"
+      "start": "00:40.000",
+      "reasons": [
+        "обрезана тишина по краям: 10 мс в начале, 1000 мс в конце"
+      ]
     },
-    {
-      "id": "lohen_reveal",
-      "stem": "voices",
-      "file": "assets/voices/lohen_reveal.wav",
-      "expected_start": "00:48.000",
-      "reason": "файл не найден"
-    },
-    {
-      "id": "lohen_final_question",
-      "stem": "voices",
-      "file": "assets/voices/lohen_final_question.wav",
-      "expected_start": "01:20.000",
-      "reason": "файл не найден"
-    },
-    {
-      "id": "lohen_final_line",
-      "stem": "voices",
-      "file": "assets/voices/lohen_final_line.wav",
-      "expected_start": "01:29.000",
-      "reason": "файл не найден"
-    }
-  ],
-  "suspicious_assets": [
     {
       "id": "crowd_gasp",
       "file": "assets/ambience/crowd_gasp.wav",
@@ -1689,19 +1943,10 @@
   "manual_check_note": "Автоматическое определение крика, голоса или музыки внутри эффекта не выполняется: надёжно отличить их от удара без прослушивания нельзя. По spear_armor_impact.wav замерена огибающая RMS по 100 мс — -8/-6/-12/-23/-28/-40/-49/-57 dB, то есть чистое монотонное затухание без затянутого участка, характерного для крика. Это косвенный признак, а не доказательство.",
   "validation": {
     "errors": [],
-    "warnings": [
-      "auctioneer_sold: необязательный файл assets/voices/auctioneer_sold.wav не найден — событие пропущено",
-      "lohen_reveal: необязательный файл assets/voices/lohen_reveal.wav не найден — событие пропущено",
-      "lohen_final_question: необязательный файл assets/voices/lohen_final_question.wav не найден — событие пропущено",
-      "lohen_final_line: необязательный файл assets/voices/lohen_final_line.wav не найден — событие пропущено"
-    ]
+    "warnings": []
   },
   "render_warnings": [
-    "auctioneer_sold (voices): пропущено — файл не найден [assets/voices/auctioneer_sold.wav]",
-    "lohen_reveal (voices): пропущено — файл не найден [assets/voices/lohen_reveal.wav]",
-    "lohen_final_question (voices): пропущено — файл не найден [assets/voices/lohen_final_question.wav]",
-    "lohen_final_line (voices): пропущено — файл не найден [assets/voices/lohen_final_line.wav]",
-    "preserve_dynamics=true: чтобы loudnorm остался линейным, прирост ограничен 7.3 dB (crest микса 15.0 dB) → фактическая громкость около -17.3 LUFS вместо -16.0 LUFS. Уровни сценария при этом сохраняются точно."
+    "preserve_dynamics=true: чтобы loudnorm остался линейным, прирост ограничен 7.0 dB (crest микса 14.4 dB) → фактическая громкость около -16.7 LUFS вместо -16.0 LUFS. Уровни сценария при этом сохраняются точно."
   ],
-  "ffmpeg_command_count": 55
+  "ffmpeg_command_count": 67
 }
