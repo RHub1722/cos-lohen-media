@@ -1,156 +1,183 @@
 # Команды FFmpeg, выполненные при последней сборке.
 # Рабочий каталог для всех команд — корень проекта.
-# Всего команд: 51
+# Всего команд: 60
 
-## [1] silence:lead:lohen_reveal.wav
+## [1] silence:lead:ice_drone.wav
+ffmpeg -hide_banner -nostdin -i assets/music/ice_drone.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
+
+## [2] silence:tail:ice_drone.wav
+ffmpeg -hide_banner -nostdin -i assets/music/ice_drone.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
+
+## [3] silence:lead:fabric_drop.wav
+ffmpeg -hide_banner -nostdin -i assets/sfx/fabric_drop.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
+
+## [4] silence:tail:fabric_drop.wav
+ffmpeg -hide_banner -nostdin -i assets/sfx/fabric_drop.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
+
+## [5] silence:lead:lohen_reveal.wav
 ffmpeg -hide_banner -nostdin -i assets/voices/lohen_reveal.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
 
-## [2] silence:tail:lohen_reveal.wav
+## [6] silence:tail:lohen_reveal.wav
 ffmpeg -hide_banner -nostdin -i assets/voices/lohen_reveal.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
 
-## [3] silence:lead:spear_whoosh_fast.wav
+## [7] silence:lead:spear_whoosh_fast.wav
 ffmpeg -hide_banner -nostdin -i assets/combat/spear_whoosh_fast.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
 
-## [4] silence:tail:spear_whoosh_fast.wav
+## [8] silence:tail:spear_whoosh_fast.wav
 ffmpeg -hide_banner -nostdin -i assets/combat/spear_whoosh_fast.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
 
-## [5] silence:lead:spear_staff_impact.wav
+## [9] silence:lead:spear_staff_impact.wav
 ffmpeg -hide_banner -nostdin -i assets/combat/spear_staff_impact.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
 
-## [6] silence:tail:spear_staff_impact.wav
+## [10] silence:tail:spear_staff_impact.wav
 ffmpeg -hide_banner -nostdin -i assets/combat/spear_staff_impact.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
 
-## [7] silence:lead:spear_whoosh_heavy.wav
+## [11] silence:lead:spear_whoosh_heavy.wav
 ffmpeg -hide_banner -nostdin -i assets/combat/spear_whoosh_heavy.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
 
-## [8] silence:tail:spear_whoosh_heavy.wav
+## [12] silence:tail:spear_whoosh_heavy.wav
 ffmpeg -hide_banner -nostdin -i assets/combat/spear_whoosh_heavy.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
 
-## [9] silence:lead:spear_armor_impact.wav
+## [13] silence:lead:spear_armor_impact.wav
 ffmpeg -hide_banner -nostdin -i assets/combat/spear_armor_impact.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
 
-## [10] silence:tail:spear_armor_impact.wav
+## [14] silence:tail:spear_armor_impact.wav
 ffmpeg -hide_banner -nostdin -i assets/combat/spear_armor_impact.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
 
-## [11] silence:lead:crowd_fleeing_distant.wav
+## [15] silence:lead:crowd_fleeing_distant.wav
 ffmpeg -hide_banner -nostdin -i assets/crowd/crowd_fleeing_distant.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
 
-## [12] silence:tail:crowd_fleeing_distant.wav
+## [16] silence:tail:crowd_fleeing_distant.wav
 ffmpeg -hide_banner -nostdin -i assets/crowd/crowd_fleeing_distant.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
 
-## [13] silence:lead:freeze_spreading.wav
+## [17] silence:lead:ice_burst.wav
+ffmpeg -hide_banner -nostdin -i assets/ice/ice_burst.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
+
+## [18] silence:tail:ice_burst.wav
+ffmpeg -hide_banner -nostdin -i assets/ice/ice_burst.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
+
+## [19] silence:lead:freeze_spreading.wav
 ffmpeg -hide_banner -nostdin -i assets/ice/freeze_spreading.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
 
-## [14] silence:tail:freeze_spreading.wav
+## [20] silence:tail:freeze_spreading.wav
 ffmpeg -hide_banner -nostdin -i assets/ice/freeze_spreading.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
 
-## [15] silence:lead:lohen_final_question.wav
+## [21] silence:lead:lohen_final_question.wav
 ffmpeg -hide_banner -nostdin -i assets/voices/lohen_final_question.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
 
-## [16] silence:tail:lohen_final_question.wav
+## [22] silence:tail:lohen_final_question.wav
 ffmpeg -hide_banner -nostdin -i assets/voices/lohen_final_question.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
 
-## [17] silence:lead:lohen_final_line.wav
+## [23] silence:lead:lohen_final_line.wav
 ffmpeg -hide_banner -nostdin -i assets/voices/lohen_final_line.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
 
-## [18] silence:tail:lohen_final_line.wav
+## [24] silence:tail:lohen_final_line.wav
 ffmpeg -hide_banner -nostdin -i assets/voices/lohen_final_line.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
 
-## [19] silence:lead:ice_final_impact.wav
+## [25] silence:lead:ice_final_impact.wav
 ffmpeg -hide_banner -nostdin -i assets/ice/ice_final_impact.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
 
-## [20] silence:tail:ice_final_impact.wav
+## [26] silence:tail:ice_final_impact.wav
 ffmpeg -hide_banner -nostdin -i assets/ice/ice_final_impact.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
 
-## [21] silence:lead:ice_resonance_tail.wav
+## [27] silence:lead:ice_resonance_tail.wav
 ffmpeg -hide_banner -nostdin -i assets/ice/ice_resonance_tail.wav -af silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak -f null -
 
-## [22] silence:tail:ice_resonance_tail.wav
+## [28] silence:tail:ice_resonance_tail.wav
 ffmpeg -hide_banner -nostdin -i assets/ice/ice_resonance_tail.wav -af areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-60dB:detection=peak,areverse -f null -
 
-## [23] peak:src:trailer_auction
+## [29] peak:src:trailer_auction
 ffmpeg -hide_banner -nostdin -i assets/trailer/auction_head.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [24] peak:src:trailer_combat
+## [30] peak:src:trailer_combat
 ffmpeg -hide_banner -nostdin -i assets/trailer/auction_tail.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [25] peak:src:lohen_reveal
+## [31] peak:src:ice_drone
+ffmpeg -hide_banner -nostdin -i assets/music/ice_drone.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [32] peak:src:fabric_drop
+ffmpeg -hide_banner -nostdin -i assets/sfx/fabric_drop.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [33] peak:src:lohen_reveal
 ffmpeg -hide_banner -nostdin -i assets/voices/lohen_reveal.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [26] peak:src:combat_whoosh_1
+## [34] peak:src:combat_whoosh_1
 ffmpeg -hide_banner -nostdin -i assets/combat/spear_whoosh_fast.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [27] peak:src:combat_staff_1
+## [35] peak:src:combat_staff_1
 ffmpeg -hide_banner -nostdin -i assets/combat/spear_staff_impact.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [28] peak:src:combat_whoosh_2
+## [36] peak:src:combat_whoosh_2
 ffmpeg -hide_banner -nostdin -i assets/combat/spear_whoosh_heavy.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [29] peak:src:combat_armor_1
+## [37] peak:src:combat_armor_1
 ffmpeg -hide_banner -nostdin -i assets/combat/spear_armor_impact.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [30] peak:src:crowd_panic
+## [38] peak:src:crowd_panic
 ffmpeg -hide_banner -nostdin -i assets/crowd/crowd_panic_rise.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [31] peak:src:crowd_fleeing
+## [39] peak:src:crowd_fleeing
 ffmpeg -hide_banner -nostdin -i assets/crowd/crowd_fleeing_distant.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [32] peak:src:frozen_hall
+## [40] peak:src:ice_burst
+ffmpeg -hide_banner -nostdin -i assets/ice/ice_burst.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
+
+## [41] peak:src:frozen_hall
 ffmpeg -hide_banner -nostdin -i assets/ambience/frozen_hall_ambience.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [33] peak:src:freeze_spreading
+## [42] peak:src:freeze_spreading
 ffmpeg -hide_banner -nostdin -i assets/ice/freeze_spreading.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [34] peak:src:lohen_final_question
+## [43] peak:src:lohen_final_question
 ffmpeg -hide_banner -nostdin -i assets/voices/lohen_final_question.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [35] peak:src:lohen_final_line
+## [44] peak:src:lohen_final_line
 ffmpeg -hide_banner -nostdin -i assets/voices/lohen_final_line.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [36] peak:src:ice_final_impact
+## [45] peak:src:ice_final_impact
 ffmpeg -hide_banner -nostdin -i assets/ice/ice_final_impact.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [37] peak:src:ice_resonance_tail
+## [46] peak:src:ice_resonance_tail
 ffmpeg -hide_banner -nostdin -i assets/ice/ice_resonance_tail.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [38] stem:ambience
-ffmpeg -hide_banner -nostdin -y -i assets/crowd/crowd_panic_rise.wav -i assets/crowd/crowd_fleeing_distant.wav -i assets/ambience/frozen_hall_ambience.wav -filter_complex "[0:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[crowd_panic_c0];[crowd_panic_c0]apad=whole_dur=5.600000,atrim=duration=5.600000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.100000:curve=tri,afade=t=out:st=5.350000:d=0.250000:curve=tri,extrastereo=m=1.3000:c=0,asetnsamples=n=128:p=0,volume='if(lt(t,2.500000),pow(10,(-25.970000000+1.600000000*(t-0.000000))/20),if(lt(t,4.400000),0.079707649,if(lt(t,5.600000),pow(10,(-21.970000000+-6.666666667*(t-4.400000))/20),0.031732187)))':eval=frame,adelay=44000:all=1[crowd_panic_out];[1:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.130000:end=5.000000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[crowd_fleeing_c0];[crowd_fleeing_c0]apad=whole_dur=1.100000,atrim=duration=1.100000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.050000:curve=tri,extrastereo=m=1.3000:c=0,asetnsamples=n=128:p=0,volume='if(lt(t,0.800000),pow(10,(-27.760000000+-2.500000000*(t-0.000000))/20),if(lt(t,1.100000),pow(10,(-29.760000000+-233.333333333*(t-0.800000))/20),0.000000000))':eval=frame,adelay=48500:all=1[crowd_fleeing_out];[2:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[frozen_hall_c0];[frozen_hall_c0]apad=whole_dur=10.150000,atrim=duration=10.150000,asetpts=PTS-STARTPTS,asetnsamples=n=128:p=0,volume='if(lt(t,0.650000),pow(10,(-28.000000000+10.769230769*(t-0.000000))/20),if(lt(t,0.950000),0.089125094,if(lt(t,1.030000),pow(10,(-21.000000000+-75.000000000*(t-0.950000))/20),if(lt(t,1.980000),0.044668359,if(lt(t,2.280000),pow(10,(-27.000000000+20.000000000*(t-1.980000))/20),if(lt(t,3.450000),0.089125094,if(lt(t,3.530000),pow(10,(-21.000000000+-75.000000000*(t-3.450000))/20),if(lt(t,4.940000),0.044668359,if(lt(t,5.240000),pow(10,(-27.000000000+20.000000000*(t-4.940000))/20),if(lt(t,5.500000),0.089125094,if(lt(t,5.580000),pow(10,(-21.000000000+-37.500000000*(t-5.500000))/20),if(lt(t,5.850000),0.063095734,if(lt(t,6.150000),pow(10,(-24.000000000+10.000000000*(t-5.850000))/20),if(lt(t,7.150000),0.089125094,if(lt(t,9.150000),pow(10,(-21.000000000+-2.500000000*(t-7.150000))/20),if(lt(t,10.150000),pow(10,(-26.000000000+-70.000000000*(t-9.150000))/20),0.000000000))))))))))))))))':eval=frame,adelay=49850:all=1[frozen_hall_out];[crowd_panic_out][crowd_fleeing_out][frozen_hall_out]amix=inputs=3:normalize=0:dropout_transition=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,apad=whole_dur=60.000000,atrim=duration=60.000000[out]" -map "[out]" -t 60.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/ambience_v3.wav
+## [47] stem:ambience
+ffmpeg -hide_banner -nostdin -y -i assets/crowd/crowd_panic_rise.wav -i assets/crowd/crowd_fleeing_distant.wav -i assets/ambience/frozen_hall_ambience.wav -filter_complex "[0:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[crowd_panic_c0];[crowd_panic_c0]apad=whole_dur=5.600000,atrim=duration=5.600000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.100000:curve=tri,afade=t=out:st=5.350000:d=0.250000:curve=tri,extrastereo=m=1.3000:c=0,asetnsamples=n=128:p=0,volume='if(lt(t,2.500000),pow(10,(-25.970000000+1.600000000*(t-0.000000))/20),if(lt(t,4.400000),0.079707649,if(lt(t,5.500000),pow(10,(-21.970000000+-6.666666667*(t-4.400000))/20),if(lt(t,5.580000),pow(10,(-29.303333333+-56.666666667*(t-5.500000))/20),if(lt(t,5.600000),pow(10,(-33.836666667+-6.666666667*(t-5.580000))/20),0.020021656)))))':eval=frame,adelay=44000:all=1[crowd_panic_out];[1:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.130000:end=5.000000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[crowd_fleeing_c0];[crowd_fleeing_c0]apad=whole_dur=1.100000,atrim=duration=1.100000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.050000:curve=tri,extrastereo=m=1.3000:c=0,asetnsamples=n=128:p=0,volume='if(lt(t,0.800000),pow(10,(-27.760000000+-2.500000000*(t-0.000000))/20),if(lt(t,1.000000),pow(10,(-29.760000000+-233.333333333*(t-0.800000))/20),if(lt(t,1.080000),pow(10,(-76.426666667+-283.333333333*(t-1.000000))/20),if(lt(t,1.100000),pow(10,(-99.093333333+-233.333333333*(t-1.080000))/20),0.000000000))))':eval=frame,adelay=48500:all=1[crowd_fleeing_out];[2:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[frozen_hall_c0];[frozen_hall_c0]apad=whole_dur=10.150000,atrim=duration=10.150000,asetpts=PTS-STARTPTS,asetnsamples=n=128:p=0,volume='if(lt(t,0.650000),pow(10,(-28.000000000+10.769230769*(t-0.000000))/20),if(lt(t,0.950000),0.089125094,if(lt(t,1.030000),pow(10,(-21.000000000+-75.000000000*(t-0.950000))/20),if(lt(t,1.980000),0.044668359,if(lt(t,2.280000),pow(10,(-27.000000000+20.000000000*(t-1.980000))/20),if(lt(t,3.450000),0.089125094,if(lt(t,3.530000),pow(10,(-21.000000000+-75.000000000*(t-3.450000))/20),if(lt(t,4.940000),0.044668359,if(lt(t,5.240000),pow(10,(-27.000000000+20.000000000*(t-4.940000))/20),if(lt(t,5.500000),0.089125094,if(lt(t,5.580000),pow(10,(-21.000000000+-37.500000000*(t-5.500000))/20),if(lt(t,5.850000),0.063095734,if(lt(t,6.150000),pow(10,(-24.000000000+10.000000000*(t-5.850000))/20),if(lt(t,7.150000),0.089125094,if(lt(t,9.150000),pow(10,(-21.000000000+-2.500000000*(t-7.150000))/20),if(lt(t,10.150000),pow(10,(-26.000000000+-70.000000000*(t-9.150000))/20),0.000000000))))))))))))))))':eval=frame,adelay=49850:all=1[frozen_hall_out];[crowd_panic_out][crowd_fleeing_out][frozen_hall_out]amix=inputs=3:normalize=0:dropout_transition=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,apad=whole_dur=60.000000,atrim=duration=60.000000[out]" -map "[out]" -t 60.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/ambience_v3.wav
 
-## [39] peak:ambience
+## [48] peak:ambience
 ffmpeg -hide_banner -nostdin -i output/ambience_v3.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [40] stem:voices
-ffmpeg -hide_banner -nostdin -y -i assets/voices/lohen_reveal.wav -i assets/voices/lohen_final_question.wav -i assets/voices/lohen_final_line.wav -filter_complex "[0:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.010000:end=4.920000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[lohen_reveal_c0];[lohen_reveal_c0]apad=whole_dur=4.910000,atrim=duration=4.910000,asetpts=PTS-STARTPTS,volume=0.914113241,adelay=38450:all=1[lohen_reveal_out];[1:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.010000:end=1.040000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[lohen_final_question_c0];[lohen_final_question_c0]apad=whole_dur=1.030000,atrim=duration=1.030000,asetpts=PTS-STARTPTS,volume=1.352072563,adelay=50800:all=1[lohen_final_question_out];[2:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.020000:end=1.510000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[lohen_final_line_c0];[lohen_final_line_c0]apad=whole_dur=1.490000,atrim=duration=1.490000,asetpts=PTS-STARTPTS,volume=0.916220490,adelay=53300:all=1[lohen_final_line_out];[lohen_reveal_out][lohen_final_question_out][lohen_final_line_out]amix=inputs=3:normalize=0:dropout_transition=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,apad=whole_dur=60.000000,atrim=duration=60.000000[out]" -map "[out]" -t 60.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/voices_v3.wav
+## [49] stem:voices
+ffmpeg -hide_banner -nostdin -y -i assets/voices/lohen_reveal.wav -i assets/voices/lohen_final_question.wav -i assets/voices/lohen_final_line.wav -filter_complex "[0:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.010000:end=4.310000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[lohen_reveal_c0];[lohen_reveal_c0]apad=whole_dur=4.300000,atrim=duration=4.300000,asetpts=PTS-STARTPTS,volume=0.914113241,adelay=38450:all=1[lohen_reveal_out];[1:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.010000:end=1.040000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[lohen_final_question_c0];[lohen_final_question_c0]apad=whole_dur=1.030000,atrim=duration=1.030000,asetpts=PTS-STARTPTS,volume=1.352072563,adelay=50800:all=1[lohen_final_question_out];[2:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.020000:end=1.510000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[lohen_final_line_c0];[lohen_final_line_c0]apad=whole_dur=1.490000,atrim=duration=1.490000,asetpts=PTS-STARTPTS,volume=0.916220490,adelay=53300:all=1[lohen_final_line_out];[lohen_reveal_out][lohen_final_question_out][lohen_final_line_out]amix=inputs=3:normalize=0:dropout_transition=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,apad=whole_dur=60.000000,atrim=duration=60.000000[out]" -map "[out]" -t 60.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/voices_v3.wav
 
-## [41] peak:voices
+## [50] peak:voices
 ffmpeg -hide_banner -nostdin -i output/voices_v3.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [42] stem:sfx
-ffmpeg -hide_banner -nostdin -y -i assets/combat/spear_whoosh_fast.wav -i assets/combat/spear_staff_impact.wav -i assets/combat/spear_whoosh_heavy.wav -i assets/combat/spear_armor_impact.wav -i assets/ice/freeze_spreading.wav -i assets/ice/ice_final_impact.wav -i assets/ice/ice_resonance_tail.wav -filter_complex "[0:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.000000:end=1.190000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[combat_whoosh_1_c0];[combat_whoosh_1_c0]apad=whole_dur=1.190000,atrim=duration=1.190000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.010000:curve=tri,afade=t=out:st=1.175000:d=0.015000:curve=tri,pan=stereo|c0=1.000000*c0|c1=0.850000*c1,volume=0.199526231,adelay=43600:all=1[combat_whoosh_1_out];[1:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[combat_staff_1_c0];[combat_staff_1_c0]apad=whole_dur=1.000000,atrim=duration=1.000000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.010000:curve=tri,afade=t=out:st=0.985000:d=0.015000:curve=tri,pan=stereo|c0=0.900000*c0|c1=1.000000*c1,volume=0.354813389,adelay=43900:all=1[combat_staff_1_out];[2:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.000000:end=1.470000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[combat_whoosh_2_c0];[combat_whoosh_2_c0]apad=whole_dur=1.470000,atrim=duration=1.470000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.010000:curve=tri,afade=t=out:st=1.455000:d=0.015000:curve=tri,pan=stereo|c0=0.800000*c0|c1=1.000000*c1,volume=0.223872114,adelay=45900:all=1[combat_whoosh_2_out];[3:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[combat_armor_1_c0];[combat_armor_1_c0]apad=whole_dur=0.800000,atrim=duration=0.800000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.010000:curve=tri,afade=t=out:st=0.785000:d=0.015000:curve=tri,volume=0.316227766,adelay=46300:all=1[combat_armor_1_out];[4:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.010000:end=4.840000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[freeze_spreading_c0];[freeze_spreading_c0]apad=whole_dur=4.830000,atrim=duration=4.830000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.075000:curve=tri,asetnsamples=n=128:p=0,volume='if(lt(t,0.900000),pow(10,(-24.000000000+5.625000000*(t-0.000000))/20),if(lt(t,0.980000),pow(10,(-18.937500000+-56.875000000*(t-0.900000))/20),if(lt(t,1.600000),pow(10,(-23.487500000+5.625000000*(t-0.980000))/20),if(lt(t,1.930000),0.100000000,if(lt(t,2.230000),pow(10,(-20.000000000+16.666666667*(t-1.930000))/20),if(lt(t,3.400000),0.177827941,if(lt(t,3.480000),pow(10,(-15.000000000+-62.500000000*(t-3.400000))/20),if(lt(t,4.600000),0.100000000,if(lt(t,4.830000),pow(10,(-20.000000000+-7.777777778*(t-4.600000))/20),0.081387097)))))))))':eval=frame,adelay=49900:all=1[freeze_spreading_out];[5:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[ice_final_impact_c0];[ice_final_impact_c0]apad=whole_dur=3.000000,atrim=duration=3.000000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.005000:curve=tri,afade=t=out:st=2.980000:d=0.020000:curve=tri,volume=0.398107171,adelay=55500:all=1[ice_final_impact_out];[6:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.020000:end=5.480000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[ice_resonance_tail_c0];[ice_resonance_tail_c0]apad=whole_dur=4.300000,atrim=duration=4.300000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.010000:curve=tri,extrastereo=m=1.3000:c=0,asetnsamples=n=128:p=0,volume='if(lt(t,0.300000),pow(10,(-20.000000000+10.000000000*(t-0.000000))/20),if(lt(t,2.300000),0.141253754,if(lt(t,3.500000),pow(10,(-17.000000000+-5.000000000*(t-2.300000))/20),if(lt(t,4.300000),pow(10,(-23.000000000+-96.250000000*(t-3.500000))/20),0.000000000))))':eval=frame,adelay=55700:all=1[ice_resonance_tail_out];[combat_whoosh_1_out][combat_staff_1_out][combat_whoosh_2_out][combat_armor_1_out][freeze_spreading_out][ice_final_impact_out][ice_resonance_tail_out]amix=inputs=7:normalize=0:dropout_transition=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,apad=whole_dur=60.000000,atrim=duration=60.000000[out]" -map "[out]" -t 60.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/sfx_v3.wav
+## [51] stem:sfx
+ffmpeg -hide_banner -nostdin -y -i assets/sfx/fabric_drop.wav -i assets/combat/spear_whoosh_fast.wav -i assets/combat/spear_staff_impact.wav -i assets/combat/spear_whoosh_heavy.wav -i assets/combat/spear_armor_impact.wav -i assets/ice/ice_burst.wav -i assets/ice/freeze_spreading.wav -i assets/ice/ice_final_impact.wav -i assets/ice/ice_resonance_tail.wav -filter_complex "[0:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.070000:end=1.360000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[fabric_drop_c0];[fabric_drop_c0]apad=whole_dur=1.290000,atrim=duration=1.290000,asetpts=PTS-STARTPTS,volume=0.458669646,adelay=13500:all=1[fabric_drop_out];[1:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.000000:end=1.190000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[combat_whoosh_1_c0];[combat_whoosh_1_c0]apad=whole_dur=1.190000,atrim=duration=1.190000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.010000:curve=tri,afade=t=out:st=1.175000:d=0.015000:curve=tri,pan=stereo|c0=1.000000*c0|c1=0.850000*c1,volume=0.199526231,adelay=43600:all=1[combat_whoosh_1_out];[2:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[combat_staff_1_c0];[combat_staff_1_c0]apad=whole_dur=1.000000,atrim=duration=1.000000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.010000:curve=tri,afade=t=out:st=0.985000:d=0.015000:curve=tri,pan=stereo|c0=0.900000*c0|c1=1.000000*c1,volume=0.354813389,adelay=43900:all=1[combat_staff_1_out];[3:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.000000:end=1.470000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[combat_whoosh_2_c0];[combat_whoosh_2_c0]apad=whole_dur=1.470000,atrim=duration=1.470000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.010000:curve=tri,afade=t=out:st=1.455000:d=0.015000:curve=tri,pan=stereo|c0=0.800000*c0|c1=1.000000*c1,volume=0.223872114,adelay=45900:all=1[combat_whoosh_2_out];[4:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[combat_armor_1_c0];[combat_armor_1_c0]apad=whole_dur=0.800000,atrim=duration=0.800000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.010000:curve=tri,afade=t=out:st=0.785000:d=0.015000:curve=tri,volume=0.316227766,adelay=46300:all=1[combat_armor_1_out];[5:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.002000:end=1.770000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[ice_burst_c0];[ice_burst_c0]apad=whole_dur=1.768000,atrim=duration=1.768000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.005000:curve=tri,afade=t=out:st=1.748000:d=0.020000:curve=tri,volume=0.501187234,adelay=49600:all=1[ice_burst_out];[6:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.010000:end=4.840000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[freeze_spreading_c0];[freeze_spreading_c0]apad=whole_dur=4.830000,atrim=duration=4.830000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.075000:curve=tri,asetnsamples=n=128:p=0,volume='if(lt(t,0.900000),pow(10,(-24.000000000+5.625000000*(t-0.000000))/20),if(lt(t,0.980000),pow(10,(-18.937500000+-56.875000000*(t-0.900000))/20),if(lt(t,1.600000),pow(10,(-23.487500000+5.625000000*(t-0.980000))/20),if(lt(t,1.930000),0.100000000,if(lt(t,2.230000),pow(10,(-20.000000000+16.666666667*(t-1.930000))/20),if(lt(t,3.400000),0.177827941,if(lt(t,3.480000),pow(10,(-15.000000000+-62.500000000*(t-3.400000))/20),if(lt(t,4.600000),0.100000000,if(lt(t,4.830000),pow(10,(-20.000000000+-7.777777778*(t-4.600000))/20),0.081387097)))))))))':eval=frame,adelay=49900:all=1[freeze_spreading_out];[7:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[ice_final_impact_c0];[ice_final_impact_c0]apad=whole_dur=3.000000,atrim=duration=3.000000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.005000:curve=tri,afade=t=out:st=2.980000:d=0.020000:curve=tri,volume=0.398107171,adelay=55500:all=1[ice_final_impact_out];[8:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.020000:end=5.480000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[ice_resonance_tail_c0];[ice_resonance_tail_c0]apad=whole_dur=4.300000,atrim=duration=4.300000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.010000:curve=tri,extrastereo=m=1.3000:c=0,asetnsamples=n=128:p=0,volume='if(lt(t,0.300000),pow(10,(-20.000000000+10.000000000*(t-0.000000))/20),if(lt(t,2.300000),0.141253754,if(lt(t,3.500000),pow(10,(-17.000000000+-5.000000000*(t-2.300000))/20),if(lt(t,4.300000),pow(10,(-23.000000000+-96.250000000*(t-3.500000))/20),0.000000000))))':eval=frame,adelay=55700:all=1[ice_resonance_tail_out];[fabric_drop_out][combat_whoosh_1_out][combat_staff_1_out][combat_whoosh_2_out][combat_armor_1_out][ice_burst_out][freeze_spreading_out][ice_final_impact_out][ice_resonance_tail_out]amix=inputs=9:normalize=0:dropout_transition=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,apad=whole_dur=60.000000,atrim=duration=60.000000[out]" -map "[out]" -t 60.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/sfx_v3.wav
 
-## [43] peak:sfx
+## [52] peak:sfx
 ffmpeg -hide_banner -nostdin -i output/sfx_v3.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [44] stem:music
-ffmpeg -hide_banner -nostdin -y -i assets/trailer/auction_head.wav -i assets/trailer/auction_tail.wav -filter_complex "[0:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[trailer_auction_c0];[trailer_auction_c0]apad=whole_dur=37.850000,atrim=duration=37.850000,asetpts=PTS-STARTPTS,volume=0.501187234[trailer_auction_out];[1:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[trailer_combat_c0];[trailer_combat_c0]apad=whole_dur=6.250000,atrim=duration=6.250000,asetpts=PTS-STARTPTS,asetnsamples=n=128:p=0,volume='if(lt(t,0.060000),pow(10,(-7.400000000+23.333333333*(t-0.000000))/20),if(lt(t,0.180000),0.501187234,if(lt(t,0.260000),pow(10,(-6.000000000+-37.500000000*(t-0.180000))/20),if(lt(t,0.550000),0.354813389,if(lt(t,0.850000),pow(10,(-9.000000000+10.000000000*(t-0.550000))/20),if(lt(t,2.580000),0.501187234,if(lt(t,2.660000),pow(10,(-6.000000000+-37.500000000*(t-2.580000))/20),if(lt(t,2.950000),0.354813389,if(lt(t,3.250000),pow(10,(-9.000000000+10.000000000*(t-2.950000))/20),if(lt(t,6.250000),0.501187234,0.501187234))))))))))':eval=frame,adelay=43600:all=1[trailer_combat_out];[trailer_auction_out][trailer_combat_out]amix=inputs=2:normalize=0:dropout_transition=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,apad=whole_dur=60.000000,atrim=duration=60.000000[out]" -map "[out]" -t 60.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/music_v3.wav
+## [53] stem:music
+ffmpeg -hide_banner -nostdin -y -i assets/trailer/auction_head.wav -i assets/trailer/auction_tail.wav -i assets/music/ice_drone.wav -filter_complex "[0:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[trailer_auction_c0];[trailer_auction_c0]apad=whole_dur=37.850000,atrim=duration=37.850000,asetpts=PTS-STARTPTS,asetnsamples=n=128:p=0,volume='if(lt(t,13.400000),0.501187234,if(lt(t,13.480000),pow(10,(-6.000000000+-25.000000000*(t-13.400000))/20),if(lt(t,14.000000),0.398107171,if(lt(t,14.300000),pow(10,(-8.000000000+6.666666667*(t-14.000000))/20),if(lt(t,37.850000),0.501187234,0.501187234)))))':eval=frame[trailer_auction_out];[1:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[trailer_combat_c0];[trailer_combat_c0]apad=whole_dur=6.250000,atrim=duration=6.250000,asetpts=PTS-STARTPTS,asetnsamples=n=128:p=0,volume='if(lt(t,0.180000),0.501187234,if(lt(t,0.260000),pow(10,(-6.000000000+-37.500000000*(t-0.180000))/20),if(lt(t,0.550000),0.354813389,if(lt(t,0.850000),pow(10,(-9.000000000+10.000000000*(t-0.550000))/20),if(lt(t,2.580000),0.501187234,if(lt(t,2.660000),pow(10,(-6.000000000+-37.500000000*(t-2.580000))/20),if(lt(t,2.950000),0.354813389,if(lt(t,3.250000),pow(10,(-9.000000000+10.000000000*(t-2.950000))/20),if(lt(t,5.900000),0.501187234,if(lt(t,5.980000),pow(10,(-6.000000000+-50.000000000*(t-5.900000))/20),if(lt(t,6.250000),0.316227766,0.316227766)))))))))))':eval=frame,adelay=43600:all=1[trailer_combat_out];[2:a]aresample=48000:first_pts=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,atrim=start=0.680000:end=10.620000,asetpts=PTS-STARTPTS,asetpts=PTS-STARTPTS[ice_drone_c0];[ice_drone_c0]apad=whole_dur=10.150000,atrim=duration=10.150000,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.200000:curve=tri,asetnsamples=n=128:p=0,volume='if(lt(t,0.050000),pow(10,(-23.910000000+6.956521739*(t-0.000000))/20),if(lt(t,0.350000),pow(10,(-23.562173913+20.289855072*(t-0.050000))/20),if(lt(t,0.950000),pow(10,(-17.475217391+6.956521739*(t-0.350000))/20),if(lt(t,1.030000),pow(10,(-13.301304348+-80.543478261*(t-0.950000))/20),if(lt(t,1.150000),pow(10,(-19.744782609+6.956521739*(t-1.030000))/20),if(lt(t,1.980000),0.113370484,if(lt(t,2.280000),pow(10,(-18.910000000+23.333333333*(t-1.980000))/20),if(lt(t,3.450000),0.253804899,if(lt(t,3.530000),pow(10,(-11.910000000+-87.500000000*(t-3.450000))/20),if(lt(t,4.940000),0.113370484,if(lt(t,5.240000),pow(10,(-18.910000000+23.333333333*(t-4.940000))/20),if(lt(t,5.500000),0.253804899,if(lt(t,5.580000),pow(10,(-11.910000000+-37.500000000*(t-5.500000))/20),if(lt(t,5.850000),0.179680108,if(lt(t,6.150000),pow(10,(-14.910000000+10.000000000*(t-5.850000))/20),if(lt(t,7.150000),0.253804899,if(lt(t,9.650000),pow(10,(-11.910000000+-3.200000000*(t-7.150000))/20),if(lt(t,10.150000),pow(10,(-19.910000000+-132.000000000*(t-9.650000))/20),0.000050641))))))))))))))))))':eval=frame,adelay=49850:all=1[ice_drone_out];[trailer_auction_out][trailer_combat_out][ice_drone_out]amix=inputs=3:normalize=0:dropout_transition=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,apad=whole_dur=60.000000,atrim=duration=60.000000[out]" -map "[out]" -t 60.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/music_v3.wav
 
-## [45] peak:music
+## [54] peak:music
 ffmpeg -hide_banner -nostdin -i output/music_v3.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [46] premaster
+## [55] premaster
 ffmpeg -hide_banner -nostdin -y -i output/ambience_v3.wav -i output/voices_v3.wav -i output/sfx_v3.wav -i output/music_v3.wav -filter_complex "[0:a][1:a][2:a][3:a]amix=inputs=4:normalize=0:dropout_transition=0,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,atrim=duration=60.000000,asetpts=PTS-STARTPTS[out]" -map "[out]" -t 60.000000 -ar 48000 -ac 2 -c:a pcm_f32le output/_premaster_v3.wav
 
-## [47] loudnorm:analyze
+## [56] loudnorm:analyze
 ffmpeg -hide_banner -nostdin -i output/_premaster_v3.wav -af loudnorm=I=-16.0:TP=-1.5:LRA=11.0:print_format=json -f null -
 
-## [48] master
-ffmpeg -hide_banner -nostdin -y -i output/_premaster_v3.wav -af loudnorm=I=-16.390000:TP=-1.800000:LRA=11.000000:measured_I=-17.150000:measured_LRA=7.100000:measured_TP=-3.060000:measured_thresh=-27.850000:offset=-0.320000:linear=true:print_format=json,aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,alimiter=limit=0.812831:level=disabled -t 60.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/master_v3.wav
+## [57] master
+ffmpeg -hide_banner -nostdin -y -i output/_premaster_v3.wav -af loudnorm=I=-16.500000:TP=-1.800000:LRA=11.000000:measured_I=-17.160000:measured_LRA=7.100000:measured_TP=-2.960000:measured_thresh=-27.830000:offset=-0.330000:linear=true:print_format=json,aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,alimiter=limit=0.812831:level=disabled -t 60.000000 -ar 48000 -ac 2 -c:a pcm_s24le output/master_v3.wav
 
-## [49] loudnorm:verify
+## [58] loudnorm:verify
 ffmpeg -hide_banner -nostdin -i output/master_v3.wav -af loudnorm=I=-16.0:TP=-1.5:LRA=11.0:print_format=json -f null -
 
-## [50] peak:master
+## [59] peak:master
 ffmpeg -hide_banner -nostdin -i output/master_v3.wav -af astats=measure_perchannel=none:measure_overall=Peak_level -f null -
 
-## [51] mp3
+## [60] mp3
 ffmpeg -hide_banner -nostdin -y -i output/master_v3.wav -c:a libmp3lame -b:a 320k -ar 48000 -ac 2 output/master_v3.mp3
