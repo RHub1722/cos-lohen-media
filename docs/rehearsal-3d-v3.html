@@ -101,6 +101,16 @@
   #bar { height:6px; background:#1b2130; cursor:pointer; }
   #fill { height:100%; background:var(--gold); width:0; }
 
+  /* индикатор источника времени */
+  #src { font-size:.75rem; padding:.22rem .5rem; border-radius:.3rem;
+         border:1px solid var(--line); color:var(--dim); white-space:nowrap;
+         font-variant-numeric:tabular-nums; }
+  #src.aud { color:#8fe3b6; border-color:#2f6b4c; background:#12241b; }
+  #warn { display:none; background:#3a2e12; color:#ffe9bd; padding:.7rem 1.2rem;
+          font-size:.9rem; line-height:1.45; border-bottom:1px solid var(--gold); }
+  #file { position:absolute; left:-9999px; width:1px; height:1px; }
+  body.dragging { outline:4px dashed var(--gold); outline-offset:-4px; }
+
   @media (max-width:900px) {
     #main { grid-template-columns:1fr; grid-template-rows:1fr 15rem; }
     #stage { border-right:none; border-bottom:1px solid var(--line); }
@@ -112,19 +122,25 @@
 
 <div id="nojs">Скрипт не выполняется. Откройте файл двойным щелчком в браузере
   (Chrome, Edge, Firefox), а не в окне предпросмотра редактора.</div>
+<div id="warn"></div>
 <div id="err"></div>
 
 <header>
   <div id="clock">00:00.00</div>
+  <div id="src">часы: внутренние · звук не загружен</div>
   <div id="blockName">—</div>
   <div id="ctl">
     <button id="play">Пуск</button>
     <button id="slow">0.5x</button>
     <button id="restart">С начала</button>
+    <button id="pick">Загрузить звук</button>
+    <button id="unload" style="display:none">Без звука</button>
     <button id="full">Экран</button>
   </div>
   <div id="sound">звучит: <b>—</b></div>
 </header>
+<input id="file" type="file" accept="audio/*,.wav,.mp3">
+<audio id="audio" preload="auto"></audio>
 
 <div id="blocks"></div>
 
@@ -138,7 +154,8 @@
       <button data-v="3">4 Сверху</button>
     </div>
     <div id="hint">мышь — вращать камеру · колесо — приближение<br>
-      пробел — пуск/пауза · ← → — 1 с · 1–4 — ракурс · S — 0.5x</div>
+      пробел — пуск/пауза · ← → — 1 с · 1–4 — ракурс · S — 0.5x<br>
+      звук: кнопка «Загрузить звук» или перетащите master_v3.wav / .mp3 в окно</div>
     <div id="caption">
       <span id="badge">—</span>
       <div id="capTitle">—</div>
@@ -488,11 +505,11 @@ const ROWS = [
   [45.90, 46.30, 2, "fast", "ТЯЖЁЛЫЙ ВЗМАХ и НИЗКИЙ ВЫПАД — 0.40 с",
     "На 45.90 в дорожке тяжёлый взмах — с него роняете центр тяжести (бёдра с 0.95 до 0.70 м) и уходите в длинный выпад. Удар по броне на 46.30, острие вниз-вперёд на высоту 0.40 м. Быстро, корпус низко."],
   [46.30, 48.50, 2, "hold", "Держите низко — 2.2 с",
-    "Остаётесь в низком выпаде, вес на передней ноге. Ничего не подправляете."],
+    "Остаётесь в низком выпаде, вес на передней ноге. Ничего не подправляете. С 47.45 под вами два слоя разгона, а боевая музыка приглушается на 5 dB — звук заранее теряет силу и подводит к удару копья. Вы в этой подводке просто держите низкую позицию."],
   [48.50, 49.35, 2, "slow", "Распрямляетесь",
-    "На 48.50 в дорожке бегство толпы — на него не смотрите. Встаёте, копьё приводите в вертикаль перед собой. Спокойно, это не боевое движение."],
+    "На 48.50 в дорожке бегство толпы — на него не смотрите. Разгон под вами продолжается, музыка уже без силы, поэтому не спешите. Встаёте, копьё приводите в вертикаль перед собой. Спокойно, это не боевое движение."],
   [49.35, 49.60, 3, "fast", "КОПЬЁ В ПОЛ",
-    "Пятка древка поднята на 0.50 м и резко вбивается в пол на 49.60. От точки удара — ледяной разряд, он же обрывает трейлерную музыку за 0.25 с. Дальше копьё стоит само."],
+    "Пятка древка поднята на 0.50 м и резко вбивается в пол на 49.60. От точки удара — ледяной разряд. Музыка не просто обрывается, а ЗАМЕРЗАЕТ: фильтр съезжает с 12000 до 300 Гц к 50.05. Дальше копьё стоит само."],
   [49.60, 50.80, 3, "slow", "Отпускаете копьё",
     "Ледяной разряд, музыка умерла. 49.85 — замороженный зал, 49.90 — расползание льда. Копьё остаётся воткнутым вертикально. Руки уходят вниз, правая кисть РАСКРЫТА и расслабленно опущена вдоль тела."],
   [50.80, 51.83, 3, "line", "«Was that all?» — поза силы",
@@ -523,11 +540,13 @@ const SOUNDS = [
   [43.60, 43.90, "музыка врывается — атака"],
   [43.90, 45.90, "музыка на полном уровне"],
   [45.90, 46.30, "тяжёлый взмах"],
-  [46.30, 48.50, "удар по броне, музыка"],
-  [48.50, 49.60, "бегство толпы"],
-  [49.60, 49.85, "ЛЕДЯНОЙ РАЗРЯД — музыка обрывается за 0.25 с"],
+  [46.30, 47.45, "удар по броне, музыка"],
+  [47.45, 48.50, "два слоя разгона перед ударом копья; боевая музыка приглушена на 5 dB"],
+  [48.50, 49.60, "бегство толпы; разгон продолжается, музыка уже без силы"],
+  [49.60, 49.85, "ЛЕДЯНОЙ РАЗРЯД — музыка замерзает: фильтр с 12000 до 300 Гц"],
   [49.85, 49.90, "замороженный зал"],
-  [49.90, 50.80, "расползание льда"],
+  [49.90, 50.05, "развёртка фильтра дожимает музыку до 300 Гц"],
+  [50.05, 50.80, "расползание льда"],
   [50.80, 51.83, "ваша реплика: «Was that all?»"],
   [51.83, 53.30, "лёд"],
   [53.30, 54.79, "ваша реплика: «How disappointing.»"],
@@ -723,6 +742,13 @@ let t = 0, running = false, rate = 1;
 let anchor = performance.now(), anchorT = 0;
 function reanchor() { anchorT = t; anchor = performance.now(); }
 
+/* Два источника времени. Без файла — внутренние часы выше, это
+   основной режим и он должен работать сам по себе. С файлом —
+   время берём из audio.currentTime, страница идёт под живой звук.
+   Отрисовка в обоих режимах одна и та же, на setInterval.        */
+let audioMode = false, fileName = "", objUrl = null;
+const audio = el("audio");
+
 function currentRow(tt) {
   let i = 0;
   for (let j = 0; j < ROWS.length; j++) if (ROWS[j][0] <= tt + 1e-6) i = j;
@@ -833,7 +859,10 @@ function draw() {
 }
 
 function tick() {
-  if (running) {
+  if (audioMode) {
+    const c = audio.currentTime;
+    if (isFinite(c)) t = Math.max(0, Math.min(TOTAL, c));
+  } else if (running) {
     t = anchorT + (performance.now() - anchor) / 1000 * rate;
     if (t >= TOTAL) { t = TOTAL; setRunning(false); }
   }
@@ -846,25 +875,145 @@ setInterval(tick, 40);
 document.addEventListener("visibilitychange", draw);
 
 /* ------------------------ управление --------------------------- */
-function setRunning(on) {
+// кнопка отражает состояние; в режиме файла её обновляют события audio
+function setPlayUI(on) {
   running = on;
-  reanchor();
   el("play").textContent = on ? "Пауза" : "Пуск";
   el("play").classList.toggle("on", on);
 }
+function setRunning(on) {
+  if (audioMode) {
+    if (on) {
+      // play() возвращает промис, и он ОТКЛОНЯЕТСЯ политикой автозапуска.
+      // Молчать нельзя — иначе страница выглядит мёртвой.
+      const p = audio.play();
+      if (p && p.catch) p.catch((e) => fail(
+        "браузер не дал запустить звук сам (" + ((e && e.name) || "NotAllowedError") +
+        "). Нажмите «Пуск» ещё раз — это будет ваш клик, и звук пойдёт. " +
+        "Раскадровка при этом жива, можно смотреть без звука кнопкой «Без звука»."));
+    } else audio.pause();
+    return;                        // running обновят события play / pause
+  }
+  setPlayUI(on);
+  reanchor();
+}
 function seek(x) {
   t = Math.max(0, Math.min(TOTAL, x));
-  reanchor();
+  if (audioMode) {
+    // Перемотка работает только потому, что источник — blob из
+    // URL.createObjectURL. Файл, отданный сервером без поддержки
+    // Range-запросов, перематываться молча отказывается.
+    try { audio.currentTime = t; }
+    catch (e) { fail("не удалось перемотать звук: " + e.message); }
+  } else reanchor();
   lastRow = lastBlock = -1; lastSound = "";
   draw();
 }
 el("play").addEventListener("click", () => setRunning(!running));
 el("restart").addEventListener("click", () => { seek(0); setRunning(true); });
 el("slow").addEventListener("click", () => {
-  reanchor();                       // без этого при смене скорости время прыгает
   rate = rate === 1 ? 0.5 : 1;
+  if (audioMode) audio.playbackRate = rate;
+  else reanchor();                  // без этого при смене скорости время прыгает
   el("slow").textContent = rate === 1 ? "0.5x" : "0.5x вкл";
   el("slow").classList.toggle("on", rate !== 1);
+});
+
+/* --------------------- загрузка дорожки ------------------------ */
+function warn(m) { const b = el("warn"); b.style.display = "block"; b.textContent = m; }
+function clearWarn() { const b = el("warn"); b.style.display = "none"; b.textContent = ""; }
+
+function setSrcLabel() {
+  const s = el("src");
+  if (!audioMode) {
+    s.textContent = "часы: внутренние · звук не загружен";
+    s.className = "";
+    el("unload").style.display = "none";
+    el("pick").textContent = "Загрузить звук";
+    return;
+  }
+  const d = isFinite(audio.duration) ? audio.duration.toFixed(3) + " с" : "длительность ?";
+  s.textContent = "часы: ФАЙЛ · " + fileName + " · " + d;
+  s.className = "aud";
+  el("unload").style.display = "";
+  el("pick").textContent = "Другой файл";
+}
+
+function loadAudio(file) {
+  if (!file) return;
+  const looksAudio = /^audio\//i.test(file.type || "") || /\.(wav|mp3|m4a|ogg|flac|aac)$/i.test(file.name);
+  if (!looksAudio) {
+    warn("«" + file.name + "» не похож на аудиофайл. Нужен master_v3.wav или master_v3.mp3 " +
+         "из папки output. Раскадровка продолжает идти по внутренним часам.");
+    return;
+  }
+  const wasRunning = running;
+  if (wasRunning) setRunning(false);
+  if (objUrl) URL.revokeObjectURL(objUrl);
+  objUrl = URL.createObjectURL(file);       // blob: только так работает перемотка
+  audioMode = true;
+  fileName = file.name;
+  clearWarn();
+  audio.src = objUrl;
+  audio.playbackRate = rate;
+  audio.load();
+  setSrcLabel();
+  setPlayUI(false);
+  seek(0);
+}
+
+function unloadAudio() {
+  audio.pause();
+  audio.removeAttribute("src");
+  audio.load();
+  if (objUrl) { URL.revokeObjectURL(objUrl); objUrl = null; }
+  audioMode = false; fileName = "";
+  clearWarn();
+  setPlayUI(false);
+  seek(0);
+  setSrcLabel();
+}
+
+audio.addEventListener("loadedmetadata", () => {
+  setSrcLabel();
+  const d = audio.duration;
+  if (!isFinite(d)) {
+    warn("Браузер не смог определить длительность файла. Синхронизацию проверьте на слух.");
+    return;
+  }
+  const off = d - TOTAL;
+  if (Math.abs(off) > 0.05) {
+    warn("Длительность файла " + d.toFixed(3) + " с, а раскадровка рассчитана на " +
+         TOTAL.toFixed(2) + " с — расхождение " + (off > 0 ? "+" : "") + off.toFixed(3) +
+         " с. Это НЕ та дорожка (похоже на master_v2 длиной 103 с?), синхронизации не будет: " +
+         "движения показываются по своим таймкодам. Возьмите master_v3.wav или master_v3.mp3.");
+  } else clearWarn();
+});
+audio.addEventListener("play",  () => setPlayUI(true));
+audio.addEventListener("pause", () => setPlayUI(false));
+audio.addEventListener("ended", () => setPlayUI(false));
+audio.addEventListener("error", () => {
+  const c = audio.error && audio.error.code;
+  fail("не удалось прочитать звуковой файл" + (c ? " (код " + c + ")" : "") +
+       ". Возможно, браузер не понимает этот формат — попробуйте master_v3.mp3.");
+});
+
+el("pick").addEventListener("click", () => { el("file").click(); el("pick").blur(); });
+el("file").addEventListener("change", (e) => {
+  loadAudio(e.target.files && e.target.files[0]);
+  e.target.value = "";              // чтобы тот же файл можно было выбрать снова
+});
+el("unload").addEventListener("click", unloadAudio);
+
+document.addEventListener("dragover", (e) => {
+  e.preventDefault(); document.body.classList.add("dragging");
+});
+document.addEventListener("dragleave", (e) => {
+  if (!e.relatedTarget) document.body.classList.remove("dragging");
+});
+document.addEventListener("drop", (e) => {
+  e.preventDefault(); document.body.classList.remove("dragging");
+  loadAudio(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]);
 });
 el("full").addEventListener("click", () => document.fullscreenElement
   ? document.exitFullscreen() : document.documentElement.requestFullscreen());
@@ -913,6 +1062,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 resize();
+setSrcLabel();
 seek(0);
 setRunning(false);
 } catch (e) {
