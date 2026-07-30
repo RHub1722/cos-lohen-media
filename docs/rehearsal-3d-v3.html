@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Лоэн — раскадровка номера 60 с (v3)</title>
+<style>
+  :root { --bg:#0b0d12; --panel:#141822; --panel2:#101420; --line:#232936;
+          --ink:#eef1f6; --dim:#8b94a7; --gold:#d9a53b; --hot:#e8563f;
+          --cold:#6fb3d9; --hold:#5b6b86; --line-col:#63b58a; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body { background:var(--bg); color:var(--ink); overflow:hidden;
+         font-family:"Segoe UI",system-ui,sans-serif;
+         display:flex; flex-direction:column; }
+
+  #nojs { background:#3a1512; color:#ffd9d3; padding:.7rem 1rem; font-size:.92rem;
+          border-bottom:1px solid var(--hot); }
+  #err { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50;
+         background:#3a1512; color:#ffd9d3; padding:.8rem 1.2rem; font-size:.9rem;
+         border-top:2px solid var(--hot); white-space:pre-wrap; }
+
+  header { display:flex; align-items:center; gap:1rem; padding:.55rem 1rem;
+           border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  #clock { font-size:clamp(1.2rem,2.6vw,1.8rem); font-variant-numeric:tabular-nums;
+           font-weight:600; letter-spacing:.01em; }
+  #blockName { color:var(--gold); text-transform:uppercase; letter-spacing:.05em;
+               font-size:clamp(.72rem,1.4vw,.92rem); font-weight:600; }
+  #sound { margin-left:auto; color:var(--dim); font-size:.85rem; max-width:34rem;
+           text-align:right; line-height:1.3; }
+  #sound b { color:var(--cold); font-weight:600; }
+  #ctl { display:flex; gap:.35rem; flex-wrap:wrap; }
+  #ctl button { background:var(--panel); border:1px solid var(--line); color:var(--dim);
+                border-radius:.35rem; padding:.35rem .7rem; cursor:pointer;
+                font-family:inherit; font-size:.88rem; }
+  #ctl button:hover { color:var(--ink); border-color:var(--gold); }
+  #ctl button.on { color:#1a1206; background:var(--gold); border-color:var(--gold);
+                   font-weight:600; }
+
+  #blocks { display:flex; gap:.4rem; padding:.5rem 1rem; border-bottom:1px solid var(--line);
+            flex-wrap:wrap; }
+  .blk { flex:1 1 8rem; text-align:left; background:var(--panel2); color:var(--dim);
+         border:1px solid var(--line); border-radius:.4rem; padding:.4rem .7rem;
+         cursor:pointer; font-family:inherit; line-height:1.25; }
+  .blk b { display:block; color:var(--ink); font-size:.95rem; font-weight:600; }
+  .blk span { font-size:.75rem; font-variant-numeric:tabular-nums; }
+  .blk:hover { border-color:var(--gold); }
+  .blk.on { border-color:var(--gold); background:#1d2130; }
+  .blk.on b { color:var(--gold); }
+
+  #main { flex:1; display:grid; grid-template-columns:1fr 23rem; min-height:0; }
+  #stage { position:relative; min-height:0; border-right:1px solid var(--line); }
+  canvas { display:block; width:100%; height:100%; cursor:grab; }
+  canvas:active { cursor:grabbing; }
+  #views { position:absolute; top:.6rem; right:.6rem; display:flex; gap:.35rem; }
+  #views button { background:#141822cc; border:1px solid var(--line); color:var(--dim);
+                  border-radius:.35rem; padding:.28rem .55rem; cursor:pointer;
+                  font-size:.82rem; font-family:inherit; }
+  #views button:hover, #views button.on { color:var(--gold); border-color:var(--gold); }
+  #hint { position:absolute; top:.6rem; left:.6rem; color:#5f6878; font-size:.76rem;
+          line-height:1.5; pointer-events:none; }
+
+  #caption { position:absolute; left:0; right:0; bottom:0; padding:.8rem 1rem 1rem;
+             background:linear-gradient(transparent,#0b0d12f2 45%); pointer-events:none; }
+  #badge { display:inline-block; font-size:.72rem; font-weight:700; letter-spacing:.08em;
+           border-radius:.25rem; padding:.15rem .45rem; color:#0b0d12; }
+  #capTitle { font-size:clamp(1rem,2vw,1.35rem); font-weight:600; margin:.35rem 0 .2rem; }
+  #capText { font-size:clamp(.82rem,1.5vw,.98rem); color:#c3cbd8; line-height:1.45;
+             max-width:52rem; }
+  #next { margin-top:.4rem; font-size:.8rem; color:var(--dim);
+          font-variant-numeric:tabular-nums; }
+
+  #side { display:flex; flex-direction:column; min-height:0; background:var(--panel2); }
+  #sideHead { padding:.5rem .8rem; border-bottom:1px solid var(--line); font-size:.8rem;
+              color:var(--dim); text-transform:uppercase; letter-spacing:.06em; }
+  #tr { flex:1; overflow-y:auto; padding:.3rem 0 6rem; }
+  .row { display:grid; grid-template-columns:4.4rem 1fr; gap:.5rem;
+         padding:.45rem .8rem; border-bottom:1px solid #1a1f2c; cursor:pointer; }
+  .row:hover { background:#171c28; }
+  .row.on { background:#1e2431; }
+  .row .tc { font-variant-numeric:tabular-nums; font-size:.78rem; color:var(--dim);
+             line-height:1.3; }
+  .row.on .tc { color:var(--gold); }
+  .row .k { font-size:.66rem; font-weight:700; letter-spacing:.06em; display:block;
+            margin-top:.18rem; }
+  .row .ti { font-size:.88rem; font-weight:600; color:#d6dce7; line-height:1.3; }
+  .row.on .ti { color:#fff; }
+  .row .tx { font-size:.78rem; color:#8d97a8; line-height:1.4; margin-top:.15rem; }
+  .row.on .tx { color:#b9c2d0; }
+  .row.past .ti, .row.past .tx { opacity:.5; }
+
+  #strip { height:26px; position:relative; background:#0e1219;
+           border-top:1px solid var(--line); cursor:pointer; }
+  #strip .seg { position:absolute; top:5px; height:9px; border-radius:2px; opacity:.75; }
+  #strip .bnd { position:absolute; top:0; bottom:0; width:1px; background:#39415a; }
+  #head { position:absolute; top:0; bottom:0; width:2px; background:#fff; }
+  #legend { display:flex; gap:.9rem; padding:.35rem 1rem .5rem; font-size:.74rem;
+            color:var(--dim); flex-wrap:wrap; border-top:1px solid var(--line); }
+  #legend i { display:inline-block; width:.7rem; height:.7rem; border-radius:2px;
+              margin-right:.28rem; vertical-align:-1px; }
+  #bar { height:6px; background:#1b2130; cursor:pointer; }
+  #fill { height:100%; background:var(--gold); width:0; }
+
+  @media (max-width:900px) {
+    #main { grid-template-columns:1fr; grid-template-rows:1fr 15rem; }
+    #stage { border-right:none; border-bottom:1px solid var(--line); }
+    #sound { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="nojs">Скрипт не выполняется. Откройте файл двойным щелчком в браузере
+  (Chrome, Edge, Firefox), а не в окне предпросмотра редактора.</div>
+<div id="err"></div>
+
+<header>
+  <div id="clock">00:00.00</div>
+  <div id="blockName">—</div>
+  <div id="ctl">
+    <button id="play">Пуск</button>
+    <button id="slow">0.5x</button>
+    <button id="restart">С начала</button>
+    <button id="full">Экран</button>
+  </div>
+  <div id="sound">звучит: <b>—</b></div>
+</header>
+
+<div id="blocks"></div>
+
+<div id="main">
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <div id="views">
+      <button data-v="0">1 Зритель</button>
+      <button data-v="1">2 3/4</button>
+      <button data-v="2">3 Сбоку</button>
+      <button data-v="3">4 Сверху</button>
+    </div>
+    <div id="hint">мышь — вращать камеру · колесо — приближение<br>
+      пробел — пуск/пауза · ← → — 1 с · 1–4 — ракурс · S — 0.5x</div>
+    <div id="caption">
+      <span id="badge">—</span>
+      <div id="capTitle">—</div>
+      <div id="capText">—</div>
+      <div id="next">—</div>
+    </div>
+  </div>
+
+  <div id="side">
+    <div id="sideHead">Транскрипт номера — 60.00 с</div>
+    <div id="tr"></div>
+  </div>
+</div>
+
+<div id="strip"><div id="head"></div></div>
+<div id="legend">
+  <span><i style="background:#e8563f"></i>быстрое движение</span>
+  <span><i style="background:#d9a53b"></i>медленное движение</span>
+  <span><i style="background:#63b58a"></i>реплика</span>
+  <span><i style="background:#5b6b86"></i>удержание неподвижности</span>
+  <span style="color:#6b748a">семь движений на минуту — всё остальное вы стоите</span>
+</div>
+<div id="bar"><div id="fill"></div></div>
+
+<script id="core">
+/* ============================================================
+   ЯДРО. Чистая математика, без DOM — этот блок целиком
+   прогоняется отдельным скриптом-замером в Node.
+
+   Система координат фигуры: начало в центре бёдер,
+   y вверх, x вправо, z вперёд (в зал). Метры.
+   Пол — плоскость y = 0. Мир: тот же y, начало на полу.
+
+   lean  > 0  — наклон корпуса ВПЕРЁД (в зал)
+   headPitch > 0 — взгляд ВНИЗ
+   yaw   — поворот всей фигуры вокруг вертикали
+
+   Локоть и колено не задаются: это середина отрезка
+   между суставами, отодвинутая в сторону.
+
+   КОПЬЁ. Два способа задания, переключаются шаговым
+   флагом hands (без интерполяции!):
+     hands = 0 — копьё стоит само (прислонено / воткнуто
+                 в пол): отрезок spBut→spTip в мировых
+                 координатах, задаётся кадрами.
+     hands = 1 — копьё в руках: прямая через обе кисти.
+                 НАКОНЕЧНИК всегда выходит за ПЕРЕДНЮЮ
+                 (левую) кисть, ПЯТКА — за заднюю (правую).
+                 Все кадры с hands=1 написаны так, что
+                 левая кисть лежит со стороны острия.
+   В кадрах переключения (43.36 и 50.00) оба способа дают
+   один и тот же отрезок — проверено замером.
+   ============================================================ */
+
+const TOTAL = 60.00;   // длительность номера, с
+const L     = 2.28;    // длина копья, м
+
+const PROP_B = [ 0.52000, 0.00000, -0.12000];  // прислонено справа
+const PROP_T = [ 0.59000, 2.27800, -0.17000];
+const CARR_B = [ 0.24000, 0.00000, -0.02000];  // стоит рядом, в правой руке
+const CARR_T = [ 0.16000, 2.27800,  0.06000];
+const LIFT_B = [ 0.23990, 0.42057, -0.01990];  // сорвано с пола, начало замаха
+const LIFT_T = [ 0.16014, 2.69778,  0.05986];
+const PLNT_B = [ 0.31988, 0.00180,  0.16014];  // воткнуто в пол
+const PLNT_T = [ 0.26002, 2.27786,  0.27985];
+
+const BASE = {
+  rootX:0, rootY:0.95, rootZ:0,
+  yaw:0, lean:0, twist:0, headYaw:0, headPitch:0,
+  lHand:[-0.20,-0.02,0.02], rHand:[0.20,-0.02,0.02],
+  lFoot:[-0.13,-0.95,0.00], rFoot:[0.13,-0.95,0.01],
+  spBut:PLNT_B, spTip:PLNT_T,
+  grip:0.42,     // доля копья позади середины кистей
+  hands:0,       // шаговый флаг
+  palm:0,        // 1 — кисть раскрыта и расслаблена
+  clothH:0.12, clothR:0.62, clothZ:-0.42, clothA:1,
+};
+const STEP = new Set(["hands"]);
+
+const K = (t, o = {}, ease = "smooth") => ({ t, ease, pose: { ...BASE, ...o } });
+
+/* --- опорные позы, чтобы удержания были буквально одинаковы --- */
+const UNDER = {                                   // под тканью
+  headPitch:26, lean:1,
+  lHand:[-0.15,-0.03,0.05], rHand:[0.15,-0.03,0.05],
+  clothH:1.86, clothR:0.44, clothZ:0.00,
+  spBut:PROP_B, spTip:PROP_T,
+};
+const EXHIB = {                                   // экспонат, ткань упала
+  headPitch:30, lean:0,
+  lHand:[-0.20,-0.02,0.02], rHand:[0.20,-0.02,0.02],
+  spBut:PROP_B, spTip:PROP_T,
+};
+const WITHSP = {                                  // копьё в правой руке
+  headPitch:0, lean:0, twist:2,
+  lHand:[-0.20,-0.02,0.02], rHand:[0.20240,0.12000,0.01758],
+  spBut:CARR_B, spTip:CARR_T,
+};
+const GUARD = {                                   // боевая стойка
+  lean:8, twist:4, yaw:-10, headPitch:2, hands:1,
+  rHand:[0.30,0.20,-0.06], lHand:[-0.06,0.34,0.42],
+  lFoot:[-0.30,-0.95,0.22], rFoot:[0.24,-0.95,-0.24],
+};
+const LUNGE = {                                   // низкий выпад
+  rootY:0.70, rootZ:0.14, lean:30, twist:8, yaw:-4, headPitch:8, hands:1,
+  rHand:[0.26,0.36,-0.06], lHand:[-0.04,0.06,0.60],
+  lFoot:[-0.34,-0.70,0.50], rFoot:[0.28,-0.70,-0.40],
+};
+const POWER = {                                   // канонная поза силы
+  lean:0, twist:0, headPitch:0, headYaw:0, palm:1,
+  rHand:[0.21,-0.02,0.03], lHand:[-0.20,-0.02,0.02],
+  lFoot:[-0.18,-0.95,0.04], rFoot:[0.18,-0.95,0.02],
+};
+
+const KEYS = [
+  /* ================= БЛОК 1. АУКЦИОН  00:00.00–00:37.85 ============= */
+  K( 0.00, UNDER),
+  K( 4.10, UNDER),                                  // молоток — не реагирует
+  K(13.50, UNDER),                                  // 13.5 с без движения
+  K(14.30, { ...UNDER, headPitch:28, clothH:0.78, clothR:0.54, clothZ:-0.22,
+             lHand:[-0.19,-0.02,0.03], rHand:[0.19,-0.02,0.03] }, "easeOut"),
+  K(15.00, EXHIB, "easeOut"),                       // ткань лежит позади ног
+  K(31.20, EXHIB),                                  // 16.2 с абсолютной неподвижности
+  K(32.00, { ...EXHIB, headPitch:2, twist:6,
+             rHand:[0.38,0.07,-0.05] }),            // голова поднялась, рука пошла
+  K(32.60, { ...EXHIB, headPitch:0, twist:9, headYaw:6,
+             rHand:[0.55288,0.12000,-0.14349] }),   // кисть на древке
+  K(33.20, WITHSP),                                 // копьё поставлено рядом
+  K(37.85, WITHSP),
+
+  /* ============ БЛОК 2. ТИШИНА И РАСКРЫТИЕ  37.85–43.60 ============= */
+  K(38.45, WITHSP),                                 // начало реплики
+  K(39.60, { ...WITHSP, headYaw:-5, headPitch:-2, lean:1 }),
+  K(41.00, { ...WITHSP, headYaw:3, headPitch:0, lean:0 }),
+  K(42.40, { ...WITHSP, headYaw:0, headPitch:-1, lean:2 }),
+  K(43.10, { ...WITHSP, lean:2,
+             lHand:[0.18557,0.60000,0.03443] }),    // левая кисть на древко
+  // 43.36 — замах: копьё срывается с пола, копьё переходит «в руки»
+  K(43.36, { ...WITHSP, lean:0, hands:1, grip:0.42,
+             rHand:[0.21550,0.16720,0.00450], lHand:[0.19730,0.68680,0.02270],
+             spBut:LIFT_B, spTip:LIFT_T }, "easeOut"),
+
+  /* =================== БЛОК 3. БОЙ  43.60–49.60 ===================== */
+  // верхняя точка замаха: острие на 2.23 м, уведено НАЗАД за плечо
+  K(43.58, { lean:-14, twist:-12, yaw:6, headPitch:-4, hands:1, grip:0.42,
+             rHand:[0.15230,0.31060,0.23340], lHand:[0.00770,0.60940,-0.11340],
+             lFoot:[-0.22,-0.95,-0.06], rFoot:[0.24,-0.95,0.10] }, "easeOut"),
+  // 43.76 удар по древку противника: острие вниз-вперёд
+  K(43.76, { lean:16, twist:10, yaw:-8, headPitch:4, hands:1, grip:0.42,
+             rHand:[0.32,0.42,-0.18], lHand:[0.02,0.22,0.44],
+             lFoot:[-0.30,-0.95,0.36], rFoot:[0.26,-0.95,-0.30] }, "easeIn"),
+  K(43.96, { lean:12, twist:6, yaw:-10, headPitch:2, hands:1, grip:0.42,
+             rHand:[0.31,0.34,-0.12], lHand:[-0.02,0.28,0.44],
+             lFoot:[-0.30,-0.95,0.30], rFoot:[0.25,-0.95,-0.27] }, "easeOut"),
+  K(44.24, GUARD, "easeOut"),
+  K(45.98, GUARD),                                  // 2.3 с удержания стойки
+  K(46.08, { lean:12, twist:6, yaw:-8, headPitch:4, hands:1, rootY:0.88,
+             rHand:[0.30,0.26,-0.14], lHand:[-0.02,0.30,0.34],
+             lFoot:[-0.28,-0.88,0.26], rFoot:[0.26,-0.88,-0.28] }, "easeOut"),
+  K(46.30, LUNGE, "easeIn"),                        // выпад, удар по броне
+  K(48.50, LUNGE),                                  // 2.2 с низко
+  K(49.10, { rootY:0.95, rootZ:0.02, lean:4, twist:2, yaw:-2, headPitch:2,
+             hands:1, grip:0.4825,
+             rHand:[0.30,0.10,0.16], lHand:[0.16,0.52,0.28],
+             lFoot:[-0.22,-0.95,0.10], rFoot:[0.22,-0.95,-0.08] }),
+  K(49.35, { lean:2, hands:1, grip:0.4825,
+             rHand:[0.29520,0.49000,0.20950], lHand:[0.28680,0.80970,0.22630],
+             lFoot:[-0.24,-0.95,0.12], rFoot:[0.24,-0.95,-0.10] }, "easeOut"),
+
+  /* =================== БЛОК 4. ЛЁД  49.60–60.00 ==================== */
+  // 49.60 пятка древка вбита в пол
+  K(49.60, { lean:6, headPitch:5, hands:1, grip:0.4825,
+             rHand:[0.29520,-0.00970,0.20950], lHand:[0.28680,0.30970,0.22630],
+             lFoot:[-0.24,-0.95,0.12], rFoot:[0.24,-0.95,-0.10] }, "easeIn"),
+  // 50.00 копьё стоит само — переключение обратно на мировой отрезок
+  K(50.00, { lean:5, headPitch:4, hands:0, grip:0.4825,
+             rHand:[0.29520,-0.00970,0.20950], lHand:[0.28680,0.30970,0.22630],
+             lFoot:[-0.24,-0.95,0.12], rFoot:[0.24,-0.95,-0.10] }),
+  K(50.80, POWER),                                  // поза силы, кисть раскрыта
+  K(51.83, POWER),                                  // «Was that all?»
+  K(53.30, POWER),
+  K(54.79, POWER),                                  // «How disappointing.»
+  K(55.30, POWER),
+  K(55.50, { ...POWER, headPitch:-3, lean:1 }, "easeIn"),   // ледяной удар
+  K(60.00, { ...POWER, headPitch:-3, lean:1 }),             // держать 4.5 с
+];
+
+/* ---------------------- интерполяция ---------------------------- */
+const smooth  = (u) => u * u * (3 - 2 * u);
+const easeIn  = (u) => u * u;
+const easeOut = (u) => 1 - (1 - u) * (1 - u);
+function shape(u, mode) {
+  if (u < 0) u = 0; else if (u > 1) u = 1;
+  if (mode === "easeIn")  return easeIn(u);
+  if (mode === "easeOut") return easeOut(u);
+  if (mode === "linear")  return u;
+  return smooth(u);
+}
+
+function poseAt(t) {
+  const n = KEYS.length;
+  if (!(t > KEYS[0].t)) return { ...KEYS[0].pose };
+  if (t >= KEYS[n - 1].t) return { ...KEYS[n - 1].pose };
+  let i = 0;
+  while (i < n - 1 && KEYS[i + 1].t <= t) i++;
+  const a = KEYS[i], b = KEYS[i + 1];
+  const span = b.t - a.t;
+  const u = span > 1e-9 ? shape((t - a.t) / span, b.ease) : 0;
+  const out = {};
+  for (const k in BASE) {
+    const va = a.pose[k], vb = b.pose[k];
+    if (STEP.has(k)) { out[k] = va; continue; }
+    out[k] = Array.isArray(va) ? va.map((c, j) => c + (vb[j] - c) * u)
+                               : va + (vb - va) * u;
+  }
+  return out;
+}
+
+/* ------------------------- вектора ------------------------------ */
+const rad = (d) => d * Math.PI / 180;
+const add = (a, b) => [a[0]+b[0], a[1]+b[1], a[2]+b[2]];
+const sub = (a, b) => [a[0]-b[0], a[1]-b[1], a[2]-b[2]];
+const mul = (a, s) => [a[0]*s, a[1]*s, a[2]*s];
+const len = (a) => Math.hypot(a[0], a[1], a[2]);
+const norm = (a) => { const l = len(a) || 1; return mul(a, 1 / l); };
+const cross = (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+function rotY(p, d) { const c = Math.cos(rad(d)), s = Math.sin(rad(d));
+  return [p[0]*c + p[2]*s, p[1], -p[0]*s + p[2]*c]; }
+function rotX(p, d) { const c = Math.cos(rad(d)), s = Math.sin(rad(d));
+  return [p[0], p[1]*c - p[2]*s, p[1]*s + p[2]*c]; }
+
+// середина отрезка, отодвинутая в сторону: так локоть и колено
+// не выглядят прямой палкой
+function midJoint(from, to, push) {
+  const m = mul(add(from, to), 0.5);
+  const dir = norm(sub(to, from));
+  let side = cross(dir, [0, 1, 0]);
+  if (len(side) < 0.05) side = [1, 0, 0];
+  return add(m, add(mul(norm(side), push[0]), [0, push[1], push[2]]));
+}
+
+/* ------------------------- копьё -------------------------------- */
+function spearSeg(p) {
+  if (p.hands < 0.5) return [[...p.spBut], [...p.spTip]];
+  const d = norm(sub(p.lHand, p.rHand));           // задняя кисть → передняя
+  const mid = mul(add(p.lHand, p.rHand), 0.5);
+  const but = sub(mid, mul(d, p.grip * L));        // пятка за задней кистью
+  const tip = add(mid, mul(d, (1 - p.grip) * L));  // наконечник за передней
+  const place = (v) => add(rotY(v, p.yaw), [p.rootX, p.rootY, p.rootZ]);
+  return [place(but), place(tip)];
+}
+
+/* ------------------------- скелет ------------------------------- */
+function skeleton(p) {
+  const hip   = [0, 0, 0];
+  const chest = rotX(rotY([0, 0.52, 0], p.twist), p.lean);
+  const neck  = add(chest, rotX([0, 0.10, 0], p.lean));
+  const head  = add(neck, rotX(rotY([0, 0.20, 0], p.headYaw * 0.35),
+                               p.lean * 0.6 + p.headPitch * 0.35));
+  const shL = add(chest, rotX(rotY([-0.20, 0.02, 0], p.twist), p.lean));
+  const shR = add(chest, rotX(rotY([ 0.20, 0.02, 0], p.twist), p.lean));
+  const hipL = [-0.11, 0, 0], hipR = [0.11, 0, 0];
+
+  const elL = midJoint(shL, p.lHand, [-0.13, -0.06, 0]);
+  const elR = midJoint(shR, p.rHand, [ 0.13, -0.06, 0]);
+  const knL = midJoint(hipL, p.lFoot, [0, 0.02, 0.13]);
+  const knR = midJoint(hipR, p.rFoot, [0, 0.02, 0.13]);
+
+  const gaze = add(head, rotX(rotY([0, 0, 0.30], p.headYaw),
+                              p.headPitch + p.lean * 0.4));
+
+  const bones = [
+    [hip, chest], [chest, neck], [neck, head],
+    [chest, shL], [shL, elL], [elL, p.lHand],
+    [chest, shR], [shR, elR], [elR, p.rHand],
+    [hip, hipL], [hipL, knL], [knL, p.lFoot],
+    [hip, hipR], [hipR, knR], [knR, p.rFoot],
+  ];
+
+  const place = (v) => add(rotY(v, p.yaw), [p.rootX, p.rootY, p.rootZ]);
+  return {
+    bones: bones.map(([a, b]) => [place(a), place(b)]),
+    head: place(head), gaze: place(gaze),
+    hands: [place(p.lHand), place(p.rHand)],
+    feet:  [place(p.lFoot), place(p.rFoot)],
+    spear: spearSeg(p),
+    yaw: p.yaw, palm: p.palm,
+    cloth: { h:p.clothH, r:p.clothR, z:p.clothZ, a:p.clothA },
+  };
+}
+
+/* ======================== СЦЕНКИ ============================== */
+const BLOCKS = [
+  { name:"Аукцион",            t0: 0.00, t1:37.85 },
+  { name:"Тишина и раскрытие", t0:37.85, t1:43.60 },
+  { name:"Бой",                t0:43.60, t1:49.60 },
+  { name:"Лёд",                t0:49.60, t1:60.00 },
+];
+
+/* ==================== ТРАНСКРИПТ ==============================
+   [начало, конец, блок, тип, заголовок, что делает тело]
+   тип: hold — стоять; slow — медленное движение;
+        fast — быстрое движение; line — реплика
+   ============================================================== */
+const ROWS = [
+  [ 0.00,  4.10, 0, "hold", "Под тканью — стоите",
+    "Закрытый силуэт: ткань конусом до пола, округлый верх (голова), покатые плечи. Ни одного движения. Копьё стоит справа, прислонённое."],
+  [ 4.10, 13.50, 0, "hold", "Удар молотка — НЕ реагируете",
+    "Продали другой лот. Не дёргаетесь, не поворачиваете голову, не переносите вес. 9.4 с полной неподвижности."],
+  [13.50, 15.00, 0, "slow", "Ткань падает — 1.5 с",
+    "Не стягиваете. Отпускаете изнутри: кисти разжимаются, груз по нижней кромке тянет ткань вниз и назад, она ложится позади ног. Корпус стоит."],
+  [15.00, 31.20, 0, "hold", "Экспонат — 16.2 с без движения",
+    "Голова опущена, взгляд в пол, руки свободно вдоль тела. Ничего не поправляете. Это самый трудный кусок номера и он сделан намеренно."],
+  [31.20, 32.00, 0, "slow", "Голова поднимается — 0.8 с",
+    "Ведущий давится на середине слова. Медленно поднимаете голову до уровня зала. Плечи оставьте на месте, поднимается только голова."],
+  [32.00, 33.20, 0, "slow", "Берёте копьё правой рукой",
+    "Правая рука уходит вправо, берёте древко и ставите копьё вертикально рядом с собой, пяткой в пол. С подъёмом головы это ОДНО слитное движение, всего около 2 с."],
+  [33.20, 37.85, 0, "hold", "Стоите с копьём — 4.65 с",
+    "Копьё вертикально в правой руке, корпус развёрнут к залу. Не двигаетесь."],
+  [37.85, 38.45, 1, "hold", "Полная тишина",
+    "Стоите. 0.6 с пустоты перед репликой — не заполняйте её движением."],
+  [38.45, 43.36, 1, "line", "Реплика — 4.91 с",
+    "«You misunderstand. I was never the merchandise.» Никаких больших движений: работают только корпус и голова. К концу фразы левая кисть спокойно приходит на древко."],
+  [43.36, 43.60, 1, "fast", "ЗАМАХ — дуга сверху",
+    "Копьё срывается с пола, острие уходит ВВЕРХ и НАЗАД за плечо, на 2.23 м от пола. Это настоящий замах по дуге, а не подъём на пол-метра."],
+  [43.60, 43.96, 2, "fast", "УДАР по древку — 0.18 с",
+    "Музыка врывается. Острие идёт вниз-вперёд, проходит по дуге 2.7 м и встречает древко противника на высоте груди. Самое быстрое место номера."],
+  [43.96, 46.08, 2, "hold", "Стойка — 2.1 с",
+    "Держите боевую стойку: острие вперёд-вверх, пятка древка сзади-снизу. Между ударами не суетитесь, стойка не «дышит»."],
+  [46.08, 46.30, 2, "fast", "НИЗКИЙ ВЫПАД — удар по броне",
+    "Роняете центр тяжести (бёдра с 0.95 до 0.70 м), длинный выпад вперёд, острие уходит вниз-вперёд на высоту 0.40 м. Быстро, корпус низко."],
+  [46.30, 48.50, 2, "hold", "Держите низко — 2.2 с",
+    "Остаётесь в низком выпаде, вес на передней ноге. Ничего не подправляете."],
+  [48.50, 49.35, 2, "slow", "Распрямляетесь",
+    "Встаёте, копьё приводите в вертикаль перед собой. Спокойно, это не боевое движение."],
+  [49.35, 49.60, 3, "fast", "КОПЬЁ В ПОЛ",
+    "Пятка древка поднята на 0.50 м и резко вбивается в пол. От точки удара расходится лёд. Дальше копьё стоит само."],
+  [49.60, 50.80, 3, "slow", "Отпускаете копьё",
+    "Копьё остаётся воткнутым вертикально. Руки уходят вниз, правая кисть РАСКРЫТА и расслабленно опущена вдоль тела."],
+  [50.80, 51.83, 3, "line", "«Was that all?» — поза силы",
+    "Канонная поза: спина прямая, подбородок ровный, кисть раскрыта и опущена. НИКАКОЙ боевой стойки, никакого замаха, копьё вы не держите напряжённо."],
+  [51.83, 53.30, 3, "hold", "Держите — 1.47 с",
+    "Не двигаетесь вообще. Пауза между репликами работает на вас."],
+  [53.30, 54.79, 3, "line", "«How disappointing.»",
+    "Ни одного движения. Разочарование идёт через осанку — не через лицо и не через руки."],
+  [54.79, 55.50, 3, "hold", "Держите",
+    "Тишина перед ледяным ударом. Стоите ровно."],
+  [55.50, 60.00, 3, "hold", "ФИНАЛЬНАЯ ПОЗА — 4.5 с",
+    "Ледяной удар: работает лёд, а не тело. Подбородок на волос выше, вес ровно на двух ногах. Держите 4.5 с до конца, ни одного лишнего движения."],
+];
+
+/* ---- что звучит: [начало, конец, текст] ---- */
+const SOUNDS = [
+  [ 0.00,  4.10, "гул зала, аукцион идёт"],
+  [ 4.10,  4.60, "УДАР МОЛОТКА — продали другой лот"],
+  [ 4.60, 13.50, "гул зала"],
+  [13.50, 15.00, "шорох падающей ткани"],
+  [15.00, 31.20, "ведущий описывает лот"],
+  [31.20, 37.85, "ведущий давится на середине слова, зал замолкает"],
+  [37.85, 38.45, "ПОЛНАЯ ТИШИНА"],
+  [38.45, 43.36, "ваша реплика: «You misunderstand. I was never the merchandise.»"],
+  [43.36, 43.60, "тишина — последняя доля секунды"],
+  [43.60, 49.60, "музыка врывается"],
+  [49.60, 50.80, "удар копья в пол, треск льда"],
+  [50.80, 51.83, "ваша реплика: «Was that all?»"],
+  [51.83, 53.30, "музыка"],
+  [53.30, 54.79, "ваша реплика: «How disappointing.»"],
+  [54.79, 55.50, "музыка"],
+  [55.50, 60.00, "ледяной удар, музыка уходит"],
+];
+
+const ICE = [[49.60, 3.4], [55.50, 4.8]];   // [время, макс. радиус]
+</script>
+
+<script id="ui">
+/* ==================== интерфейс и отрисовка ==================== */
+function fail(m) {
+  const b = document.getElementById("err");
+  if (b) { b.style.display = "block"; b.textContent = "Ошибка: " + m; }
+}
+window.addEventListener("error", (e) => fail(e.message + "  (строка " + e.lineno + ")"));
+window.addEventListener("unhandledrejection", (e) => fail(String(e.reason)));
+
+try {
+const el = (id) => document.getElementById(id);
+el("nojs").remove();
+
+const KIND = {
+  hold: { label:"ДЕРЖАТЬ",   color:"#5b6b86" },
+  slow: { label:"МЕДЛЕННО",  color:"#d9a53b" },
+  fast: { label:"БЫСТРО",    color:"#e8563f" },
+  line: { label:"РЕПЛИКА",   color:"#63b58a" },
+};
+const fmt = (t) => {
+  if (!(t > 0)) t = 0;
+  const m = Math.floor(t / 60), s = t - m * 60;
+  return String(m).padStart(2, "0") + ":" + s.toFixed(2).padStart(5, "0");
+};
+
+/* ------------------------- камера ------------------------------ */
+const VIEWS = [
+  { az:   0, el: 12, d: 4.9 },
+  { az: -36, el: 16, d: 5.1 },
+  { az: -88, el: 10, d: 4.9 },
+  { az: -20, el: 66, d: 5.8 },
+];
+let cam = { ...VIEWS[1] };
+const target = [0, 0.95, 0];
+
+const cv = el("cv"), ctx = cv.getContext("2d");
+let W = 0, H = 0, DPR = 1;
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = cv.clientWidth || 800; H = cv.clientHeight || 600;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener("resize", resize);
+
+function project(p) {
+  const ca = Math.cos(rad(cam.az)), sa = Math.sin(rad(cam.az));
+  const ce = Math.cos(rad(cam.el)), se = Math.sin(rad(cam.el));
+  const eye = [target[0] + cam.d*ce*sa, target[1] + cam.d*se, target[2] + cam.d*ce*ca];
+  const fwd = norm(sub(target, eye));
+  let right = norm(cross([0, 1, 0], fwd));
+  if (!isFinite(right[0]) || len(right) < 1e-6) right = [1, 0, 0];
+  const up = cross(fwd, right);
+  const v = sub(p, eye);
+  const z = v[0]*fwd[0] + v[1]*fwd[1] + v[2]*fwd[2];
+  if (z < 0.15) return null;
+  const x = v[0]*right[0] + v[1]*right[1] + v[2]*right[2];
+  const y = v[0]*up[0] + v[1]*up[1] + v[2]*up[2];
+  const f = Math.min(W, H) * 0.92;
+  return [W/2 + f*x/z, H/2 - f*y/z, z];
+}
+function line(a, b, color, width) {
+  const p = project(a), q = project(b);
+  if (!p || !q) return;
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke();
+}
+function poly(pts, color, width, close) {
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineJoin = "round";
+  let started = false;
+  ctx.beginPath();
+  for (const v of pts) {
+    const q = project(v);
+    if (!q) { started = false; continue; }
+    if (!started) { ctx.moveTo(q[0], q[1]); started = true; } else ctx.lineTo(q[0], q[1]);
+  }
+  if (close) ctx.closePath();
+  ctx.stroke();
+}
+function dot(p, r, color) {
+  const q = project(p); if (!q) return;
+  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 6.2832); ctx.fill();
+}
+function label(p, text, color, dy) {
+  const q = project(p); if (!q) return;
+  ctx.fillStyle = color; ctx.font = "600 11px system-ui"; ctx.textAlign = "center";
+  ctx.fillText(text, q[0], q[1] + (dy || 0));
+}
+
+/* ------------------------- декорации --------------------------- */
+function drawFloor() {
+  const n = 8, s = 0.5;
+  for (let i = -n; i <= n; i++) {
+    const c = i === 0 ? "#2b3342" : "#1a2030";
+    line([i*s, 0, -n*s], [i*s, 0, n*s], c, 1);
+    line([-n*s, 0, i*s], [n*s, 0, i*s], c, 1);
+  }
+  label([0, 0.02, n*s], "ЗРИТЕЛЬ", "#7b8496", 16);
+}
+
+function drawIce(t) {
+  for (const [t0, rmax] of ICE) {
+    if (t < t0) continue;
+    const age = t - t0;
+    const r = Math.min(rmax, age * 2.6);
+    const a = Math.max(0, 1 - age / 8) * 0.8;
+    if (a < 0.02 || r < 0.05) continue;
+    const c = "rgba(120,190,235," + a.toFixed(3) + ")";
+    const cx = PLNT_B[0], cz = PLNT_B[2];
+    const ring = [];
+    for (let k = 0; k <= 40; k++) {
+      const g = k / 40 * Math.PI * 2;
+      ring.push([cx + Math.cos(g)*r, 0.006, cz + Math.sin(g)*r]);
+    }
+    poly(ring, c, 1.6, true);
+    for (let k = 0; k < 12; k++) {
+      const g = k * Math.PI / 6 + (t0 > 50 ? 0.26 : 0);
+      line([cx + Math.cos(g)*r*0.3, 0.006, cz + Math.sin(g)*r*0.3],
+           [cx + Math.cos(g)*r,     0.006, cz + Math.sin(g)*r], c, 1.1);
+    }
+  }
+}
+
+function drawCloth(c) {
+  if (c.a < 0.02 || c.h < 0.02) return;
+  const prof = (v) => c.r * Math.pow(Math.max(0, 1 - Math.pow(v, 2.2)), 0.4);
+  const pt = (v, g) => [Math.cos(g)*prof(v), v*c.h, Math.sin(g)*prof(v) + c.z];
+  const col = "rgba(163,146,118," + (0.55*c.a).toFixed(3) + ")";
+  const col2 = "rgba(196,176,140," + (0.75*c.a).toFixed(3) + ")";
+  for (let k = 0; k < 14; k++) {
+    const g = k / 14 * Math.PI * 2, rib = [];
+    for (let j = 0; j <= 10; j++) rib.push(pt(j/10, g));
+    poly(rib, col, 1.4, false);
+  }
+  for (const v of [0.02, 0.3, 0.58, 0.82]) {
+    const ring = [];
+    for (let k = 0; k <= 32; k++) ring.push(pt(v, k/32*Math.PI*2));
+    poly(ring, v < 0.05 ? col2 : col, v < 0.05 ? 2.6 : 1.2, true);
+  }
+}
+
+function drawFigure(sk) {
+  for (const [a, b] of sk.bones) line(a, b, "#dfe5ef", 7);
+  const h = project(sk.head);
+  if (h) {
+    const r = Math.max(4, 200 / h[2] * 0.115);
+    ctx.fillStyle = "#dfe5ef";
+    ctx.beginPath(); ctx.arc(h[0], h[1], r, 0, 6.2832); ctx.fill();
+  }
+  line(sk.head, sk.gaze, "#6fb3d9", 3);          // куда смотрит
+
+  // кисти: закрытая — точка, раскрытая — веер пальцев
+  for (const hd of sk.hands) {
+    if (sk.palm > 0.5) {
+      const a = Math.min(1, (sk.palm - 0.5) * 2);
+      const c = "rgba(223,229,239," + a.toFixed(2) + ")";
+      for (const dx of [-0.045, -0.015, 0.015, 0.045])
+        line(hd, add(hd, rotY([dx, -0.10, 0.02], sk.yaw)), c, 2.2);
+    } else {
+      dot(hd, 4.5, "#dfe5ef");
+    }
+  }
+
+  // копьё: пятка тупая, наконечник помечен и подписан
+  const [but, tip] = sk.spear;
+  line(but, tip, "#d9a53b", 5);
+  const d = norm(sub(tip, but));
+  line(sub(but, mul(d, -0.0)), add(but, mul(d, 0.05)), "#8a6c22", 9);
+  dot(tip, 6, "#f6d68a");
+  label(add(tip, mul(d, 0.14)), "ОСТРИЕ", "#f0c774", 4);
+  label(sub(but, mul(d, 0.12)), "пятка", "#8f7a44", 4);
+}
+
+/* ------------------------- время -------------------------------
+   Часы считаются от ЯКОРЯ (абсолютной метки performance.now()),
+   а не складыванием шагов между кадрами. Проверено замером:
+   браузер режет частоту таймеров у неактивной вкладки, и
+   накопление шагов теряет реальное время — на фоне за 1.20 с
+   успевало натикать только 0.75 с. Раскадровка — прибор для
+   тайминга, отставать ей нельзя. При якоре отрисовка может
+   тормозить, а время всё равно верное.                          */
+let t = 0, running = false, rate = 1;
+let anchor = performance.now(), anchorT = 0;
+function reanchor() { anchorT = t; anchor = performance.now(); }
+
+function currentRow(tt) {
+  let i = 0;
+  for (let j = 0; j < ROWS.length; j++) if (ROWS[j][0] <= tt + 1e-6) i = j;
+  return i;
+}
+function currentBlock(tt) {
+  let i = 0;
+  for (let j = 0; j < BLOCKS.length; j++) if (BLOCKS[j].t0 <= tt + 1e-6) i = j;
+  return i;
+}
+function currentSound(tt) {
+  for (const s of SOUNDS) if (tt >= s[0] - 1e-6 && tt < s[1]) return s[2];
+  return SOUNDS[SOUNDS.length - 1][2];
+}
+
+/* --------------------- построение панелей ---------------------- */
+const blocksBox = el("blocks");
+BLOCKS.forEach((b, i) => {
+  const btn = document.createElement("button");
+  btn.className = "blk"; btn.dataset.b = i;
+  btn.innerHTML = "<b>" + (i + 1) + ". " + b.name + "</b><span>" +
+                  fmt(b.t0) + " – " + fmt(b.t1) + "</span>";
+  btn.addEventListener("click", () => seek(b.t0));
+  blocksBox.appendChild(btn);
+});
+
+const trBox = el("tr");
+const rowEls = ROWS.map((r, i) => {
+  const d = document.createElement("div");
+  d.className = "row";
+  const k = KIND[r[3]];
+  d.innerHTML = '<div class="tc">' + fmt(r[0]) +
+                '<span class="k" style="color:' + k.color + '">' + k.label + "</span></div>" +
+                '<div><div class="ti">' + r[4] + '</div><div class="tx">' + r[5] + "</div></div>";
+  d.addEventListener("click", () => seek(r[0]));
+  trBox.appendChild(d);
+  return d;
+});
+
+const strip = el("strip");
+ROWS.forEach((r) => {
+  const s = document.createElement("div");
+  s.className = "seg";
+  s.style.left = (r[0] / TOTAL * 100) + "%";
+  s.style.width = Math.max(0.25, (r[1] - r[0]) / TOTAL * 100) + "%";
+  s.style.background = KIND[r[3]].color;
+  strip.appendChild(s);
+});
+BLOCKS.forEach((b) => {
+  if (b.t0 === 0) return;
+  const s = document.createElement("div");
+  s.className = "bnd"; s.style.left = (b.t0 / TOTAL * 100) + "%";
+  strip.appendChild(s);
+});
+
+/* ------------------------- отрисовка --------------------------- */
+let lastRow = -1, lastBlock = -1, lastSound = "";
+function draw() {
+  if (!W) resize();
+  ctx.clearRect(0, 0, W, H);
+  drawFloor();
+  drawIce(t);
+  const p = poseAt(t);
+  const sk = skeleton(p);
+  drawFigure(sk);
+  drawCloth(sk.cloth);          // ткань поверх фигуры, полупрозрачная
+
+  el("clock").textContent = fmt(t);
+  el("fill").style.width = (t / TOTAL * 100) + "%";
+  el("head").style.left = (t / TOTAL * 100) + "%";
+
+  const bi = currentBlock(t);
+  if (bi !== lastBlock) {
+    lastBlock = bi;
+    el("blockName").textContent = "блок " + (bi + 1) + " · " + BLOCKS[bi].name;
+    [...document.querySelectorAll(".blk")].forEach((b, j) =>
+      b.classList.toggle("on", j === bi));
+  }
+
+  const ri = currentRow(t);
+  if (ri !== lastRow) {
+    lastRow = ri;
+    const r = ROWS[ri], k = KIND[r[3]];
+    el("badge").textContent = k.label;
+    el("badge").style.background = k.color;
+    el("capTitle").textContent = r[4];
+    el("capText").textContent = r[5];
+    rowEls.forEach((d, j) => {
+      d.classList.toggle("on", j === ri);
+      d.classList.toggle("past", j < ri);
+    });
+    const d = rowEls[ri];
+    const top = d.offsetTop, bot = top + d.offsetHeight;
+    if (top < trBox.scrollTop || bot > trBox.scrollTop + trBox.clientHeight)
+      trBox.scrollTop = Math.max(0, top - trBox.clientHeight * 0.35);
+  }
+  const r = ROWS[ri];
+  const left = r[1] - t;
+  el("next").textContent = t >= TOTAL ? "номер закончен"
+    : "до конца пункта " + left.toFixed(2) + " с   ·   до конца номера " +
+      (TOTAL - t).toFixed(2) + " с";
+
+  const snd = currentSound(t);
+  if (snd !== lastSound) {
+    lastSound = snd;
+    el("sound").innerHTML = "звучит: <b>" + snd + "</b>";
+  }
+}
+
+function tick() {
+  if (running) {
+    t = anchorT + (performance.now() - anchor) / 1000 * rate;
+    if (t >= TOTAL) { t = TOTAL; setRunning(false); }
+  }
+  draw();
+}
+// ВАЖНО: setInterval, не requestAnimationFrame — rAF браузер
+// останавливает, когда считает страницу невидимой (окно
+// предпросмотра, неактивная вкладка), и страница выглядит сломанной.
+setInterval(tick, 40);
+document.addEventListener("visibilitychange", draw);
+
+/* ------------------------ управление --------------------------- */
+function setRunning(on) {
+  running = on;
+  reanchor();
+  el("play").textContent = on ? "Пауза" : "Пуск";
+  el("play").classList.toggle("on", on);
+}
+function seek(x) {
+  t = Math.max(0, Math.min(TOTAL, x));
+  reanchor();
+  lastRow = lastBlock = -1; lastSound = "";
+  draw();
+}
+el("play").addEventListener("click", () => setRunning(!running));
+el("restart").addEventListener("click", () => { seek(0); setRunning(true); });
+el("slow").addEventListener("click", () => {
+  reanchor();                       // без этого при смене скорости время прыгает
+  rate = rate === 1 ? 0.5 : 1;
+  el("slow").textContent = rate === 1 ? "0.5x" : "0.5x вкл";
+  el("slow").classList.toggle("on", rate !== 1);
+});
+el("full").addEventListener("click", () => document.fullscreenElement
+  ? document.exitFullscreen() : document.documentElement.requestFullscreen());
+
+const seekFrom = (e, node) => {
+  const b = node.getBoundingClientRect();
+  seek((e.clientX - b.left) / b.width * TOTAL);
+};
+el("bar").addEventListener("click", (e) => seekFrom(e, el("bar")));
+strip.addEventListener("click", (e) => seekFrom(e, strip));
+
+function setView(i) {
+  cam = { ...VIEWS[i] };
+  [...document.querySelectorAll("#views button")].forEach((b, j) =>
+    b.classList.toggle("on", i === j));
+  draw();
+}
+document.querySelectorAll("#views button").forEach((b) =>
+  b.addEventListener("click", () => setView(+b.dataset.v)));
+setView(1);
+
+let drag = null;
+cv.addEventListener("pointerdown", (e) => {
+  drag = { x:e.clientX, y:e.clientY, az:cam.az, el:cam.el };
+  cv.setPointerCapture(e.pointerId);
+});
+cv.addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  cam.az = drag.az - (e.clientX - drag.x) * 0.4;
+  cam.el = Math.max(-12, Math.min(85, drag.el + (e.clientY - drag.y) * 0.3));
+});
+cv.addEventListener("pointerup", () => { drag = null; });
+cv.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  cam.d = Math.max(2.2, Math.min(12, cam.d + Math.sign(e.deltaY) * 0.35));
+}, { passive:false });
+
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") { e.preventDefault(); setRunning(!running); }
+  else if (e.code === "ArrowLeft")  seek(t - 1);
+  else if (e.code === "ArrowRight") seek(t + 1);
+  else if (e.key === "r" || e.key === "R") { seek(0); setRunning(true); }
+  else if (e.key === "s" || e.key === "S") el("slow").click();
+  else if (e.key === "f" || e.key === "F") el("full").click();
+  else if (e.key >= "1" && e.key <= "4") setView(+e.key - 1);
+});
+
+resize();
+seek(0);
+setRunning(false);
+} catch (e) {
+  fail((e && e.message ? e.message : String(e)) + "\n" + (e && e.stack ? e.stack : ""));
+}
+</script>
+</body>
+</html>
