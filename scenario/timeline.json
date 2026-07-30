@@ -186,6 +186,7 @@
         "00:08.000",
         "00:20.000"
       ],
+      "normalize_source": true,
       "note": "Вступление аукциониста. Ожидаемый слот реплики 00:08.000-00:20.000: если файл окажется длиннее и выйдет за 00:20.000, валидатор предупредит."
     },
     {
@@ -195,6 +196,7 @@
       "start": "00:20.000",
       "required": false,
       "pan": -0.2,
+      "normalize_source": true,
       "note": "Подозрительный покупатель. Панорама слегка влево."
     },
     {
@@ -204,6 +206,7 @@
       "start": "00:29.000",
       "required": false,
       "pan": 0.0,
+      "normalize_source": true,
       "note": "Лоэн замечает. Строго по центру."
     },
     {
@@ -213,6 +216,7 @@
       "start": "00:40.000",
       "required": false,
       "pan": 0.0,
+      "normalize_source": true,
       "note": "Продано."
     },
     {
@@ -222,6 +226,7 @@
       "start": "00:48.000",
       "required": false,
       "pan": 0.0,
+      "normalize_source": true,
       "note": "Раскрытие."
     },
     {
@@ -231,6 +236,7 @@
       "start": "01:20.000",
       "required": false,
       "pan": 0.0,
+      "normalize_source": true,
       "note": "Финальный вопрос."
     },
     {
@@ -240,6 +246,7 @@
       "start": "01:29.000",
       "required": false,
       "pan": 0.0,
+      "normalize_source": true,
       "note": "Финальная реплика, поверх замороженного зала."
     },
     {

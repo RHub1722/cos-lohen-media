@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T21:25:39Z",
+  "generated_at": "2026-07-30T07:44:32Z",
   "project_root": "audio-project",
   "environment": {
     "python": "3.12.10",
@@ -40,30 +40,30 @@
     "sample_rate": 48000,
     "channels": 2,
     "codec": "pcm_s24le",
-    "peak_dbfs": -2.33,
+    "peak_dbfs": -2.32,
     "mp3": "output/master_v2.mp3"
   },
   "loudness": {
     "normalization_applied": true,
     "target_lufs": -16.0,
-    "effective_target_lufs": -18.37,
-    "requested_gain_db": 10.9,
-    "applied_gain_db": 8.53,
+    "effective_target_lufs": -17.34,
+    "requested_gain_db": 8.62,
+    "applied_gain_db": 7.28,
     "gain_capped": true,
     "cap_reason": "preserve_dynamics",
     "normalization_type": "linear",
-    "max_linear_gain_db": 8.53,
+    "max_linear_gain_db": 7.28,
     "measured_before": {
-      "integrated_lufs": -26.9,
-      "true_peak_db": -10.83,
-      "lra_lu": 18.6,
-      "threshold_lufs": -43.21
+      "integrated_lufs": -24.62,
+      "true_peak_db": -9.58,
+      "lra_lu": 16.9,
+      "threshold_lufs": -39.56
     },
     "measured_after": {
-      "integrated_lufs": -18.37,
+      "integrated_lufs": -17.38,
       "true_peak_db": -2.3,
-      "lra_lu": 18.5,
-      "threshold_lufs": -34.94
+      "lra_lu": 16.7,
+      "threshold_lufs": -32.56
     }
   },
   "ducking": {
@@ -75,7 +75,20 @@
       "ice": 5.0,
       "music": 7.0
     },
-    "voice_windows": [],
+    "voice_windows": [
+      {
+        "start": "00:00.000",
+        "end": "00:04.180"
+      },
+      {
+        "start": "00:20.000",
+        "end": "00:22.920"
+      },
+      {
+        "start": "00:29.000",
+        "end": "00:34.257"
+      }
+    ],
     "accent_windows": [
       {
         "group": "ambience",
@@ -146,14 +159,15 @@
     {
       "name": "voices",
       "file": "output/voices_v2.wav",
-      "silent": true,
+      "silent": false,
       "duration_seconds": 103.0,
-      "peak_dbfs": null,
-      "events": [],
-      "skipped_events": [
+      "peak_dbfs": -9.6,
+      "events": [
         "auctioneer_intro",
         "buyer_suspicious",
-        "lohen_notice",
+        "lohen_notice"
+      ],
+      "skipped_events": [
         "auctioneer_sold",
         "lohen_reveal",
         "lohen_final_question",
@@ -202,6 +216,42 @@
   ],
   "events": [
     {
+      "id": "auctioneer_intro",
+      "stem": "voices",
+      "file": "assets/voices/auctioneer_intro.wav",
+      "start": "00:00.000",
+      "end": "00:04.180",
+      "duration_seconds": 4.18,
+      "source_duration_seconds": 4.18,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -4.11,
+        "normalize_source": true,
+        "source_compensation_db": -5.49,
+        "max_envelope_db": 0.0,
+        "expected_peak_dbfs": -9.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:00.000",
+          "db": 0.0
+        },
+        {
+          "t": "00:04.180",
+          "db": 0.0
+        }
+      ],
+      "note": "Вступление аукциониста. Ожидаемый слот реплики 00:08.000-00:20.000: если файл окажется длиннее и выйдет за 00:20.000, валидатор предупредит."
+    },
+    {
       "id": "crowd_murmur",
       "stem": "ambience",
       "file": "assets/ambience/auction_crowd_murmur.wav",
@@ -231,12 +281,48 @@
           "db": -28.0
         },
         {
+          "t": "00:00.080",
+          "db": -36.01
+        },
+        {
+          "t": "00:04.180",
+          "db": -36.42
+        },
+        {
+          "t": "00:04.480",
+          "db": -28.45
+        },
+        {
           "t": "00:20.000",
           "db": -30.0
         },
         {
+          "t": "00:20.080",
+          "db": -38.04
+        },
+        {
+          "t": "00:22.920",
+          "db": -39.3
+        },
+        {
+          "t": "00:23.220",
+          "db": -31.43
+        },
+        {
           "t": "00:29.000",
           "db": -34.0
+        },
+        {
+          "t": "00:29.080",
+          "db": -41.95
+        },
+        {
+          "t": "00:34.257",
+          "db": -38.65
+        },
+        {
+          "t": "00:34.557",
+          "db": -30.46
         },
         {
           "t": "00:40.000",
@@ -311,6 +397,50 @@
           "db": -25.0
         },
         {
+          "t": "00:00.080",
+          "db": -31.0
+        },
+        {
+          "t": "00:04.180",
+          "db": -31.0
+        },
+        {
+          "t": "00:04.480",
+          "db": -25.0
+        },
+        {
+          "t": "00:20.000",
+          "db": -25.0
+        },
+        {
+          "t": "00:20.080",
+          "db": -31.0
+        },
+        {
+          "t": "00:22.920",
+          "db": -31.0
+        },
+        {
+          "t": "00:23.220",
+          "db": -25.0
+        },
+        {
+          "t": "00:29.000",
+          "db": -25.0
+        },
+        {
+          "t": "00:29.080",
+          "db": -31.0
+        },
+        {
+          "t": "00:34.257",
+          "db": -31.0
+        },
+        {
+          "t": "00:34.557",
+          "db": -25.0
+        },
+        {
           "t": "00:57.000",
           "db": -25.0
         },
@@ -350,6 +480,42 @@
       "note": "Акустика зала. Зацикливается equal-power кроссфейдом, под голосами приглушается на 6 dB."
     },
     {
+      "id": "buyer_suspicious",
+      "stem": "voices",
+      "file": "assets/voices/buyer_suspicious.wav",
+      "start": "00:20.000",
+      "end": "00:22.920",
+      "duration_seconds": 2.92,
+      "source_duration_seconds": 2.92,
+      "looped": false,
+      "pan": -0.2,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -8.23,
+        "normalize_source": true,
+        "source_compensation_db": -1.37,
+        "max_envelope_db": 0.0,
+        "expected_peak_dbfs": -9.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:20.000",
+          "db": 0.0
+        },
+        {
+          "t": "00:22.920",
+          "db": 0.0
+        }
+      ],
+      "note": "Подозрительный покупатель. Панорама слегка влево."
+    },
+    {
       "id": "crowd_suspicious_whispers",
       "stem": "ambience",
       "file": "assets/ambience/crowd_suspicious_whispers.wav",
@@ -379,6 +545,18 @@
           "db": -30.0
         },
         {
+          "t": "00:20.080",
+          "db": -37.89
+        },
+        {
+          "t": "00:22.920",
+          "db": -34.11
+        },
+        {
+          "t": "00:23.220",
+          "db": -25.71
+        },
+        {
           "t": "00:24.500",
           "db": -24.0
         },
@@ -396,6 +574,42 @@
         }
       ],
       "note": "Шёпот в толпе. Стем ambience: это реакция толпы, а не удар. Исходник тихий (пик -31.4 dBFS), поэтому normalize_source=true: значения ниже читаются как абсолютный уровень плюс общий запас mix.absolute_headroom_db, максимум выходит на -33.6 dBFS. Перед репликой Лоэна уходит до -36 dB, последние 150 мс — фейд в тишину, чтобы не было щелчка на обрезке."
+    },
+    {
+      "id": "lohen_notice",
+      "stem": "voices",
+      "file": "assets/voices/lohen_notice.wav",
+      "start": "00:29.000",
+      "end": "00:34.257",
+      "duration_seconds": 5.257,
+      "source_duration_seconds": 5.257,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": null,
+      "level": {
+        "source_peak_dbfs": -8.72,
+        "normalize_source": true,
+        "source_compensation_db": -0.88,
+        "max_envelope_db": 0.0,
+        "expected_peak_dbfs": -9.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:29.000",
+          "db": 0.0
+        },
+        {
+          "t": "00:34.257",
+          "db": 0.0
+        }
+      ],
+      "note": "Лоэн замечает. Строго по центру."
     },
     {
       "id": "metal_restraint_click",
@@ -1337,27 +1551,6 @@
   ],
   "missing_optional_assets": [
     {
-      "id": "auctioneer_intro",
-      "stem": "voices",
-      "file": "assets/voices/auctioneer_intro.wav",
-      "expected_start": "00:00.000",
-      "reason": "файл не найден"
-    },
-    {
-      "id": "buyer_suspicious",
-      "stem": "voices",
-      "file": "assets/voices/buyer_suspicious.wav",
-      "expected_start": "00:20.000",
-      "reason": "файл не найден"
-    },
-    {
-      "id": "lohen_notice",
-      "stem": "voices",
-      "file": "assets/voices/lohen_notice.wav",
-      "expected_start": "00:29.000",
-      "reason": "файл не найден"
-    },
-    {
       "id": "auctioneer_sold",
       "stem": "voices",
       "file": "assets/voices/auctioneer_sold.wav",
@@ -1497,9 +1690,6 @@
   "validation": {
     "errors": [],
     "warnings": [
-      "auctioneer_intro: необязательный файл assets/voices/auctioneer_intro.wav не найден — событие пропущено",
-      "buyer_suspicious: необязательный файл assets/voices/buyer_suspicious.wav не найден — событие пропущено",
-      "lohen_notice: необязательный файл assets/voices/lohen_notice.wav не найден — событие пропущено",
       "auctioneer_sold: необязательный файл assets/voices/auctioneer_sold.wav не найден — событие пропущено",
       "lohen_reveal: необязательный файл assets/voices/lohen_reveal.wav не найден — событие пропущено",
       "lohen_final_question: необязательный файл assets/voices/lohen_final_question.wav не найден — событие пропущено",
@@ -1507,14 +1697,11 @@
     ]
   },
   "render_warnings": [
-    "auctioneer_intro (voices): пропущено — файл не найден [assets/voices/auctioneer_intro.wav]",
-    "buyer_suspicious (voices): пропущено — файл не найден [assets/voices/buyer_suspicious.wav]",
-    "lohen_notice (voices): пропущено — файл не найден [assets/voices/lohen_notice.wav]",
     "auctioneer_sold (voices): пропущено — файл не найден [assets/voices/auctioneer_sold.wav]",
     "lohen_reveal (voices): пропущено — файл не найден [assets/voices/lohen_reveal.wav]",
     "lohen_final_question (voices): пропущено — файл не найден [assets/voices/lohen_final_question.wav]",
     "lohen_final_line (voices): пропущено — файл не найден [assets/voices/lohen_final_line.wav]",
-    "preserve_dynamics=true: чтобы loudnorm остался линейным, прирост ограничен 8.5 dB (crest микса 16.1 dB) → фактическая громкость около -18.4 LUFS вместо -16.0 LUFS. Уровни сценария при этом сохраняются точно."
+    "preserve_dynamics=true: чтобы loudnorm остался линейным, прирост ограничен 7.3 dB (crest микса 15.0 dB) → фактическая громкость около -17.3 LUFS вместо -16.0 LUFS. Уровни сценария при этом сохраняются точно."
   ],
-  "ffmpeg_command_count": 52
+  "ffmpeg_command_count": 55
 }
