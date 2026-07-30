@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-30T09:05:10Z",
+  "generated_at": "2026-07-30T09:14:59Z",
   "project_root": "audio-project",
   "environment": {
     "python": "3.12.10",
@@ -46,24 +46,24 @@
   "loudness": {
     "normalization_applied": true,
     "target_lufs": -16.0,
-    "effective_target_lufs": -16.7,
-    "requested_gain_db": 7.68,
+    "effective_target_lufs": -16.77,
+    "requested_gain_db": 7.75,
     "applied_gain_db": 6.98,
     "gain_capped": true,
     "cap_reason": "preserve_dynamics",
     "normalization_type": "linear",
     "max_linear_gain_db": 6.98,
     "measured_before": {
-      "integrated_lufs": -23.68,
+      "integrated_lufs": -23.75,
       "true_peak_db": -9.28,
-      "lra_lu": 16.2,
-      "threshold_lufs": -38.15
+      "lra_lu": 15.0,
+      "threshold_lufs": -38.11
     },
     "measured_after": {
-      "integrated_lufs": -16.73,
+      "integrated_lufs": -16.81,
       "true_peak_db": -2.3,
-      "lra_lu": 15.8,
-      "threshold_lufs": -31.4
+      "lra_lu": 15.1,
+      "threshold_lufs": -31.37
     }
   },
   "ducking": {
@@ -108,6 +108,27 @@
     "accent_windows": [
       {
         "group": "ambience",
+        "source": "auction_gavel",
+        "start": "00:41.100",
+        "end": "00:41.500",
+        "depth_db": 2.0
+      },
+      {
+        "group": "ambience",
+        "source": "auction_gavel_2",
+        "start": "00:41.520",
+        "end": "00:41.920",
+        "depth_db": 2.0
+      },
+      {
+        "group": "ambience",
+        "source": "auction_gavel_3",
+        "start": "00:41.920",
+        "end": "00:42.320",
+        "depth_db": 2.0
+      },
+      {
+        "group": "ambience",
         "source": "combat_gunshot",
         "start": "01:04.050",
         "end": "01:04.500",
@@ -119,6 +140,27 @@
         "start": "01:37.350",
         "end": "01:37.700",
         "depth_db": 3.0
+      },
+      {
+        "group": "crowd",
+        "source": "auction_gavel",
+        "start": "00:41.100",
+        "end": "00:41.500",
+        "depth_db": 2.0
+      },
+      {
+        "group": "crowd",
+        "source": "auction_gavel_2",
+        "start": "00:41.520",
+        "end": "00:41.920",
+        "depth_db": 2.0
+      },
+      {
+        "group": "crowd",
+        "source": "auction_gavel_3",
+        "start": "00:41.920",
+        "end": "00:42.320",
+        "depth_db": 2.0
       },
       {
         "group": "crowd",
@@ -194,10 +236,12 @@
       "file": "output/sfx_v2.wav",
       "silent": false,
       "duration_seconds": 103.0,
-      "peak_dbfs": -11.02,
+      "peak_dbfs": -10.58,
       "events": [
         "metal_restraint_click",
         "auction_gavel",
+        "auction_gavel_2",
+        "auction_gavel_3",
         "crowd_gasp",
         "combat_whoosh_1",
         "combat_staff_1",
@@ -352,8 +396,52 @@
           "db": -35.5
         },
         {
+          "t": "00:41.100",
+          "db": -32.62
+        },
+        {
+          "t": "00:41.180",
+          "db": -30.52
+        },
+        {
           "t": "00:41.290",
-          "db": -27.64
+          "db": -29.64
+        },
+        {
+          "t": "00:41.500",
+          "db": -29.75
+        },
+        {
+          "t": "00:41.520",
+          "db": -29.63
+        },
+        {
+          "t": "00:41.600",
+          "db": -29.8
+        },
+        {
+          "t": "00:41.800",
+          "db": -29.9
+        },
+        {
+          "t": "00:41.920",
+          "db": -29.96
+        },
+        {
+          "t": "00:42.000",
+          "db": -30.0
+        },
+        {
+          "t": "00:42.220",
+          "db": -30.11
+        },
+        {
+          "t": "00:42.320",
+          "db": -30.16
+        },
+        {
+          "t": "00:42.620",
+          "db": -28.31
         },
         {
           "t": "00:48.000",
@@ -504,7 +592,51 @@
           "db": -31.0
         },
         {
+          "t": "00:41.100",
+          "db": -28.8
+        },
+        {
+          "t": "00:41.180",
+          "db": -27.2
+        },
+        {
           "t": "00:41.290",
+          "db": -27.0
+        },
+        {
+          "t": "00:41.500",
+          "db": -27.0
+        },
+        {
+          "t": "00:41.520",
+          "db": -26.87
+        },
+        {
+          "t": "00:41.600",
+          "db": -27.0
+        },
+        {
+          "t": "00:41.800",
+          "db": -27.0
+        },
+        {
+          "t": "00:41.920",
+          "db": -27.0
+        },
+        {
+          "t": "00:42.000",
+          "db": -27.0
+        },
+        {
+          "t": "00:42.220",
+          "db": -27.0
+        },
+        {
+          "t": "00:42.320",
+          "db": -27.0
+        },
+        {
+          "t": "00:42.620",
           "db": -25.0
         },
         {
@@ -797,25 +929,121 @@
       "trimmed_silence_ms": null,
       "stereo_width": null,
       "duck_group": null,
-      "ducks": null,
+      "ducks": {
+        "groups": [
+          "ambience",
+          "crowd"
+        ],
+        "depth_db": 2.0,
+        "pre_ms": 100,
+        "hold_ms": 300
+      },
       "level": {
         "source_peak_dbfs": -16.21,
         "normalize_source": true,
         "source_compensation_db": 6.61,
-        "max_envelope_db": -6.0,
-        "expected_peak_dbfs": -15.6
+        "max_envelope_db": -3.0,
+        "expected_peak_dbfs": -12.6
       },
       "envelope_db": [
         {
           "t": "00:41.200",
-          "db": -6.0
+          "db": -3.0
         },
         {
           "t": "00:42.880",
-          "db": -6.0
+          "db": -3.0
         }
       ],
-      "note": "Удар молотка. Исходник тихий (пик -16.2 dBFS), поэтому normalize_source=true: -6.0 читается как абсолютный уровень плюс общий запас mix.absolute_headroom_db, то есть -15.6 dBFS. Это самое громкое событие дорожки, и после нормализации master оно выходит на потолок, не будучи расплющенным лимитером."
+      "note": "Первый из трёх ударов молотка. §4 описывает один удар, три — согласованное отступление: удар это единственный триггер, по которому исполнитель начинает вставать, а ритм из трёх ловится надёжнее одиночного транзиента. Третий удар предсказуем после первых двух. Уровень поднят с -6.0 до -3.0: пик микса задают голоса на -9.60 dBFS, поэтому у молотка было 6 dB свободного запаса, и подъём не отнимает громкость у дорожки. Дак на 2.0 dB расчищает фон вокруг удара — это добавляет разборчивости без затрат громкости."
+    },
+    {
+      "id": "auction_gavel_2",
+      "stem": "sfx",
+      "file": "assets/ambience/auction_gavel.wav",
+      "start": "00:41.620",
+      "end": "00:43.300",
+      "duration_seconds": 1.68,
+      "source_duration_seconds": 1.68,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": {
+        "groups": [
+          "ambience",
+          "crowd"
+        ],
+        "depth_db": 2.0,
+        "pre_ms": 100,
+        "hold_ms": 300
+      },
+      "level": {
+        "source_peak_dbfs": -16.21,
+        "normalize_source": true,
+        "source_compensation_db": 6.61,
+        "max_envelope_db": -4.0,
+        "expected_peak_dbfs": -13.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:41.620",
+          "db": -4.0
+        },
+        {
+          "t": "00:43.300",
+          "db": -4.0
+        }
+      ],
+      "note": "Второй удар. На 1 dB тише первого: три копии одного файла с одинаковым уровнем звучат машинно, небольшой разброс читается как живая рука."
+    },
+    {
+      "id": "auction_gavel_3",
+      "stem": "sfx",
+      "file": "assets/ambience/auction_gavel.wav",
+      "start": "00:42.020",
+      "end": "00:43.700",
+      "duration_seconds": 1.68,
+      "source_duration_seconds": 1.68,
+      "looped": false,
+      "pan": 0.0,
+      "pan_automation": null,
+      "fade_in_ms": null,
+      "fade_out_ms": null,
+      "trimmed_silence_ms": null,
+      "stereo_width": null,
+      "duck_group": null,
+      "ducks": {
+        "groups": [
+          "ambience",
+          "crowd"
+        ],
+        "depth_db": 2.0,
+        "pre_ms": 100,
+        "hold_ms": 300
+      },
+      "level": {
+        "source_peak_dbfs": -16.21,
+        "normalize_source": true,
+        "source_compensation_db": 6.61,
+        "max_envelope_db": -1.0,
+        "expected_peak_dbfs": -10.6
+      },
+      "envelope_db": [
+        {
+          "t": "00:42.020",
+          "db": -1.0
+        },
+        {
+          "t": "00:43.700",
+          "db": -1.0
+        }
+      ],
+      "note": "Третий удар, самый громкий (-10.6 dBFS) и на 1 dB ниже пика голосов, поэтому глобальный пик микса не смещается. Именно по нему исполнитель начинает вставать. Интервал 0.40 с против 0.42 у первой пары: лёгкое ускорение читается как завершение серии."
     },
     {
       "id": "lohen_reveal",
@@ -1946,7 +2174,7 @@
     "warnings": []
   },
   "render_warnings": [
-    "preserve_dynamics=true: чтобы loudnorm остался линейным, прирост ограничен 7.0 dB (crest микса 14.4 dB) → фактическая громкость около -16.7 LUFS вместо -16.0 LUFS. Уровни сценария при этом сохраняются точно."
+    "preserve_dynamics=true: чтобы loudnorm остался линейным, прирост ограничен 7.0 dB (crest микса 14.5 dB) → фактическая громкость около -16.8 LUFS вместо -16.0 LUFS. Уровни сценария при этом сохраняются точно."
   ],
   "ffmpeg_command_count": 67
 }

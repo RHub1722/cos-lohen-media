@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Лоэн — репетиционные подсказки</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #141822;
+    --line: #232936;
+    --ink: #eef1f6;
+    --dim: #8b94a7;
+    --gold: #d9a53b;
+    --hot: #e8563f;
+    --cold: #6fb3d9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ---------- стартовый экран ---------- */
+  #setup {
+    position: fixed; inset: 0; z-index: 10;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 1.5rem; padding: 2rem; text-align: center;
+  }
+  #setup h1 { font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 600; }
+  #setup p { color: var(--dim); max-width: 34rem; line-height: 1.6; }
+  .btn {
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 0.5rem;
+    padding: 0.9rem 1.6rem; font-size: 1.05rem; cursor: pointer;
+    font-family: inherit;
+  }
+  .btn:hover { border-color: var(--gold); }
+  .btn-main { background: var(--gold); color: #1a1206; border-color: var(--gold); font-weight: 600; }
+  .row { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+  .hint { font-size: 0.85rem; color: var(--dim); }
+
+  /* ---------- рабочий экран ---------- */
+  header {
+    display: flex; align-items: baseline; gap: 1.5rem;
+    padding: 0.9rem 1.5rem; border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  #clock { font-size: clamp(1.6rem, 4vw, 2.6rem); font-variant-numeric: tabular-nums; font-weight: 600; }
+  #scene { color: var(--gold); font-size: clamp(0.9rem, 2vw, 1.2rem); letter-spacing: 0.04em; text-transform: uppercase; }
+  #controls { margin-left: auto; display: flex; gap: 0.5rem; }
+  #controls button {
+    background: none; border: 1px solid var(--line); color: var(--dim);
+    border-radius: 0.35rem; padding: 0.35rem 0.7rem; cursor: pointer; font-family: inherit;
+  }
+  #controls button:hover { color: var(--ink); border-color: var(--gold); }
+
+  main { flex: 1; display: grid; grid-template-columns: 1.6fr 1fr; gap: 1px; background: var(--line); min-height: 0; }
+  section { background: var(--bg); padding: clamp(1rem, 3vw, 2.5rem); overflow: hidden; }
+  .label { font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin-bottom: 0.9rem; }
+
+  #action { font-size: clamp(1.4rem, 3.6vw, 2.9rem); line-height: 1.3; font-weight: 500; }
+  #action .em { color: var(--gold); }
+
+  #sound { font-size: clamp(1rem, 1.8vw, 1.35rem); line-height: 1.5; color: var(--ink); }
+  #line { color: var(--cold); font-style: italic; margin-top: 0.6rem; display: block; }
+
+  #next { border-top: 1px solid var(--line); }
+  #countdown { font-size: clamp(2.5rem, 7vw, 5rem); font-variant-numeric: tabular-nums; font-weight: 700; line-height: 1; }
+  #countdown.soon { color: var(--gold); }
+  #countdown.now { color: var(--hot); }
+  #nextText { font-size: clamp(0.95rem, 1.6vw, 1.2rem); color: var(--dim); margin-top: 0.7rem; line-height: 1.4; }
+
+  footer { border-top: 1px solid var(--line); }
+  #bar { height: 6px; background: var(--panel); }
+  #fill { height: 100%; background: var(--gold); width: 0; }
+  #strip {
+    display: flex; gap: 1.25rem; padding: 0.6rem 1.5rem;
+    font-size: 0.85rem; color: var(--dim); overflow-x: auto; white-space: nowrap;
+  }
+  #strip .cur { color: var(--gold); font-weight: 600; }
+  #strip .done { opacity: 0.35; }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; grid-template-rows: 1.4fr 1fr; }
+    #next { border-top: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+
+<div id="setup">
+  <h1>Репетиционные подсказки — номер «Лоэн»</h1>
+  <p>
+    Экран сам едет по таймкодам: что делать сейчас, что звучит и сколько секунд
+    до следующего действия. Загрузите <b>output/master_v2.mp3</b> — тогда
+    подсказки пойдут точно в ноль с дорожкой.
+  </p>
+  <div class="row">
+    <button class="btn btn-main" id="pick">Выбрать master_v2.mp3</button>
+    <button class="btn" id="silent">Репетиция без звука</button>
+  </div>
+  <input id="file" type="file" accept="audio/*" style="position:absolute;left:-9999px">
+  <p class="hint">
+    Пробел — пуск и пауза · ← → — пять секунд назад и вперёд · R — с начала · F — на весь экран
+  </p>
+  <p id="jsCheck" style="color:var(--hot); font-size:0.9rem">
+    Скрипт не выполняется. Откройте файл в браузере напрямую — двойным щелчком
+    по <b>rehearsal-cues.html</b>, а не в окне предпросмотра.
+  </p>
+  <p class="hint">Файл можно и просто перетащить в это окно.</p>
+</div>
+
+<div id="err" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:20;
+     background:#3a1512; color:#ffd9d3; padding:0.8rem 1.2rem; font-size:0.9rem;
+     border-top:1px solid var(--hot)"></div>
+
+<header>
+  <div id="clock">00:00.0</div>
+  <div id="scene">—</div>
+  <div id="controls">
+    <button id="play">Пуск</button>
+    <button id="restart">С начала</button>
+    <button id="full">Экран</button>
+  </div>
+</header>
+
+<main>
+  <section id="left">
+    <div class="label">Что делаете</div>
+    <div id="action">—</div>
+  </section>
+  <section id="right" style="display:grid; grid-template-rows: auto 1fr;">
+    <div>
+      <div class="label">Что звучит</div>
+      <div id="sound">—</div>
+    </div>
+    <div id="next" style="padding-top:1.5rem; margin-top:1.5rem;">
+      <div class="label">Следующее действие через</div>
+      <div id="countdown">—</div>
+      <div id="nextText">—</div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div id="bar"><div id="fill"></div></div>
+  <div id="strip"></div>
+</footer>
+
+<audio id="audio" preload="auto"></audio>
+
+<script>
+// Таймкоды взяты из scenario/timeline.json фактической сборки v2f,
+// действия — из §4 ТЗ. at — секунды от начала дорожки.
+const CUES = [
+  { at: 0.0,  scene: "Появление лота",
+    action: 'Сидите на стуле. Голова опущена, руки за спиной — как связанные. Почти не двигайтесь.',
+    sound: "Акустика большого зала, приглушённый гул толпы. Ведущий начинает.",
+    line: "Ladies and gentlemen... our final lot of the evening." },
+
+  { at: 2.0,  scene: "Появление лота",
+    action: 'На словах <span class="em">«final lot»</span> медленно поднимаете голову. Сначала взгляд вниз.',
+    sound: "Реплика ведущего продолжается.", line: "" },
+
+  { at: 4.2,  scene: "Представление лота",
+    action: 'Переводите взгляд на зрителей. Улыбка появляется не сразу — к концу паузы едва заметная, уверенная.',
+    sound: "Гул зала, редкие шаги, лёгкое движение ткани. Реплик нет.", line: "" },
+
+  { at: 20.0, scene: "Подозрение покупателя",
+    action: 'Медленно переводите взгляд <span class="em">влево</span>, на голос. Только глаза и голова — корпус не поворачивайте. Лицо спокойное.',
+    sound: "Покупатель, слева. Включаются тревожные шёпоты толпы.",
+    line: "He looks far too calm." },
+
+  { at: 23.0, scene: "Подозрение покупателя",
+    action: 'Держите спокойное выражение. Пауза перед ответом.',
+    sound: "Шёпоты в толпе, обычный гул стал тише.", line: "" },
+
+  { at: 29.0, scene: "Ответ Лоэна",
+    action: 'Проговариваете синхронно. На паузе после <span class="em">«think»</span> слегка опустите взгляд. На <span class="em">«notice»</span> наклоните голову. Улыбка хитрая, не широкая.',
+    sound: "Ваша реплика. Фон приглушается под голосом.",
+    line: "I was beginning to think... that no one... would notice." },
+
+  { at: 39.3, scene: "Ответ Лоэна",
+    action: 'Руки свободны — но <span class="em">не показывайте этого</span>. Внешне ничего не меняется.',
+    sound: "Тихий металлический щелчок замка.", line: "" },
+
+  { at: 40.0, scene: "Продажа",
+    action: 'Ждёте. Не двигаетесь.',
+    sound: "Ведущий объявляет.", line: "Sold." },
+
+  { at: 41.2, scene: "Продажа",
+    action: 'Считайте удары: раз — два — <span class="em">три</span>. На третьем начинаете вставать.',
+    sound: "Три удара молотка. Третий самый громкий.", line: "" },
+
+  { at: 42.0, scene: "Продажа",
+    action: 'Медленно встаёте. <span class="em">Не переходите в бой.</span> Вид человека, который всё контролирует. Освобождение рук становится заметным.',
+    sound: "Отзвук молотка, толпа заинтересованно гудит.", line: "" },
+
+  { at: 48.0, scene: "Раскрытие ловушки",
+    action: 'Говорите спокойно. Без нажима.',
+    sound: "Первая фраза.", line: "You misunderstand." },
+
+  { at: 49.6, scene: "Раскрытие ловушки",
+    action: '<span class="em">Полностью освобождаете руки.</span> У вас полторы секунды — не торопитесь.',
+    sound: "Пауза в реплике. Только фон зала.", line: "" },
+
+  { at: 51.0, scene: "Раскрытие ловушки",
+    action: 'На <span class="em">«never»</span> видно, что вы не пленник. На <span class="em">«merchandise»</span> — оружие в руках, боевая стойка.',
+    sound: "Вторая фраза.", line: "I was never the merchandise." },
+
+  { at: 52.9, scene: "Раскрытие ловушки",
+    action: 'Стойка держится. Смотрите в зал.',
+    sound: "Тишина в репликах. Фон тревожнее.", line: "" },
+
+  { at: 56.8, scene: "Начало боя",
+    action: 'Толпа осознала. Начинаете движение.',
+    sound: "Общий испуганный вздох, затем нарастающая паника.", line: "" },
+
+  { at: 58.5, scene: "Бой — связка 1",
+    action: 'Быстрый выпад или короткий взмах <span class="em">слева</span> → удар древком <span class="em">справа</span>.',
+    sound: "Взмах, затем удар древком.", line: "" },
+
+  { at: 61.2, scene: "Бой — связка 2",
+    action: 'Широкий двуручный взмах с сильной инерцией → сильное попадание по броне.',
+    sound: "Тяжёлый взмах, металлическое попадание.", line: "" },
+
+  { at: 64.2, scene: "Бой — выстрел",
+    action: 'Противник стреляет <span class="em">справа</span>. Уклоняетесь — пуля проходит справа налево.',
+    sound: "Выстрел в помещении, пролёт пули. Фон расступается.", line: "" },
+
+  { at: 67.0, scene: "Бой — связка 3",
+    action: 'Быстрый ответный удар <span class="em">справа</span> → короткий удар древком <span class="em">слева</span>.',
+    sound: "Взмах, удар древком.", line: "" },
+
+  { at: 70.0, scene: "Бой — связка 4",
+    action: 'Сильный центральный взмах → самое сильное попадание связки.',
+    sound: "Тяжёлый взмах, мощное попадание.", line: "" },
+
+  { at: 72.0, scene: "Бой — толпа бежит",
+    action: 'Продолжаете. На толпу не смотрите.',
+    sound: "Шаги и голоса удаляются, паника уходит в фон.", line: "" },
+
+  { at: 75.2, scene: "Бой — связка 5",
+    action: 'Быстрый взмах → удар древком.',
+    sound: "Взмах, удар древком.", line: "" },
+
+  { at: 78.0, scene: "Бой — финал связки",
+    action: '<span class="em">Последний</span> взмах и последнее попадание. Бой резко заканчивается.',
+    sound: "Тяжёлый взмах, финальное попадание. Дальше тишина.", line: "" },
+
+  { at: 80.0, scene: "Затишье",
+    action: 'Медленно поворачиваетесь к последнему противнику. Копьё в его сторону. Голос спокойный, без крика. В лице лёгкое разочарование.',
+    sound: "Боевой слой оборвался. Ваша реплика.", line: "Was that all?" },
+
+  { at: 81.1, scene: "Затишье",
+    action: 'Держите. <span class="em">Тишина работает на вас.</span> Никаких лишних движений.',
+    sound: "Слабая акустика помещения, редкие далёкие движения. Толпы почти нет.", line: "" },
+
+  { at: 88.9, scene: "Переход ко льду",
+    action: 'Зал уходит. Стало холодно — это должно быть видно.',
+    sound: "Толпа быстро гаснет, короткая пауза, холодный низкий гул.", line: "" },
+
+  { at: 89.0, scene: "Ледяная сцена",
+    action: 'Холодное разочарование. Не злость.',
+    sound: "Ваша реплика, лёд начинает расползаться.", line: "How disappointing." },
+
+  { at: 90.6, scene: "Ледяная сцена",
+    action: 'Держите позу. Дайте льду работать — он расходится по залу.',
+    sound: "Кристаллические трещины, эффект нарастает.", line: "" },
+
+  { at: 95.0, scene: "Подготовка удара",
+    action: 'Начинаете замах. <span class="em">Коротко</span> — движение не должно быть длинным.',
+    sound: "Лёд на пике, холодный гул.", line: "" },
+
+  { at: 97.0, scene: "Подготовка удара",
+    action: 'Короткая пауза. Замерли перед ударом.',
+    sound: "Фон на мгновение приглушается.", line: "" },
+
+  { at: 97.5, scene: "Финальный удар",
+    action: '<span class="em">Резкий удар копьём.</span> Сразу замираете.',
+    sound: "Главный акцент всего номера: треск льда, осколки.", line: "" },
+
+  { at: 97.8, scene: "Финальная поза",
+    action: 'Держите позу <span class="em">3–4 секунды</span>. Никаких лишних движений. Затем затемнение.',
+    sound: "Холодный резонанс, полное затухание к 01:43.", line: "" },
+
+  { at: 103.0, scene: "Конец",
+    action: 'Номер закончен.',
+    sound: "Тишина.", line: "" },
+];
+
+const TOTAL = 103.0;
+
+const el = (id) => document.getElementById(id);
+
+// Любая ошибка должна быть видна на экране, а не молча ломать страницу.
+function fail(msg) {
+  const box = el("err");
+  if (!box) return;
+  box.style.display = "block";
+  box.textContent = "Ошибка: " + msg;
+}
+window.addEventListener("error", (e) => fail(e.message));
+window.addEventListener("unhandledrejection", (e) => fail(String(e.reason)));
+
+// Если этот текст исчез, значит скрипт выполняется.
+el("jsCheck").remove();
+
+const audio = el("audio");
+let silentMode = false;
+let silentStart = null;
+let silentPaused = 0;
+let running = false;
+
+function fmt(t) {
+  if (t < 0) t = 0;
+  const m = Math.floor(t / 60);
+  const s = t - m * 60;
+  return String(m).padStart(2, "0") + ":" + s.toFixed(1).padStart(4, "0");
+}
+
+// ---------- полоса предстоящих реплик ----------
+const strip = el("strip");
+CUES.forEach((c, i) => {
+  const span = document.createElement("span");
+  span.textContent = fmt(c.at) + " " + c.scene;
+  span.dataset.i = i;
+  strip.appendChild(span);
+});
+
+let shownIndex = -1;
+
+function currentIndex(t) {
+  let idx = 0;
+  for (let i = 0; i < CUES.length; i++) if (CUES[i].at <= t + 0.001) idx = i;
+  return idx;
+}
+
+function render(t) {
+  el("clock").textContent = fmt(t);
+  el("fill").style.width = Math.min(100, (t / TOTAL) * 100) + "%";
+
+  const i = currentIndex(t);
+  const cue = CUES[i];
+  const next = CUES[i + 1];
+
+  if (i !== shownIndex) {
+    shownIndex = i;
+    el("scene").textContent = cue.scene;
+    el("action").innerHTML = cue.action;
+    el("sound").innerHTML = cue.sound + (cue.line ? `<span id="line">«${cue.line}»</span>` : "");
+    el("nextText").innerHTML = next ? next.action : "Дорожка закончилась.";
+    [...strip.children].forEach((s, j) => {
+      s.className = j === i ? "cur" : (j < i ? "done" : "");
+    });
+    const cur = strip.children[i];
+    if (cur) cur.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }
+
+  const cd = el("countdown");
+  if (next) {
+    const left = next.at - t;
+    cd.textContent = left.toFixed(1);
+    cd.className = left <= 1 ? "now" : (left <= 3 ? "soon" : "");
+  } else {
+    cd.textContent = "—";
+    cd.className = "";
+  }
+}
+
+function now() {
+  if (silentMode) {
+    if (!running) return silentPaused;
+    return (performance.now() - silentStart) / 1000;
+  }
+  return audio.currentTime;
+}
+
+// Экран обновляется по таймеру, а не через requestAnimationFrame: тот
+// приостанавливается, когда браузер считает страницу невидимой — в окне
+// предпросмотра, на неактивной вкладке, на части телевизоров. Из-за этого
+// подсказки замирали, хотя время внутри продолжало идти. 20 кадров в секунду
+// для текста с одним знаком после запятой более чем достаточно.
+function loop() {
+  render(now());
+}
+setInterval(loop, 50);
+document.addEventListener("visibilitychange", loop);
+
+function setRunning(on) {
+  running = on;
+  el("play").textContent = on ? "Пауза" : "Пуск";
+  if (silentMode) {
+    if (on) silentStart = performance.now() - silentPaused * 1000;
+    else silentPaused = (performance.now() - silentStart) / 1000;
+  } else if (on) {
+    const p = audio.play();
+    // Браузер может отказать в автозапуске — тогда честно говорим об этом,
+    // а не оставляем экран замершим без объяснений.
+    if (p && p.catch) p.catch(() => fail("браузер не дал запустить звук, нажмите «Пуск»"));
+  } else {
+    audio.pause();
+  }
+}
+
+function seek(t) {
+  t = Math.max(0, Math.min(TOTAL, t));
+  if (silentMode) {
+    silentPaused = t;
+    if (running) silentStart = performance.now() - t * 1000;
+  } else {
+    audio.currentTime = t;
+  }
+  shownIndex = -1;
+}
+
+// ---------- запуск ----------
+function startWithFile(f) {
+  if (!f) return;
+  audio.src = URL.createObjectURL(f);
+  silentMode = false;
+  el("setup").style.display = "none";
+  setRunning(true);
+}
+
+el("pick").addEventListener("click", () => el("file").click());
+el("file").addEventListener("change", (e) => startWithFile(e.target.files[0]));
+
+audio.addEventListener("error", () =>
+  fail("не удалось прочитать звуковой файл, попробуйте master_v2.mp3 из папки output"));
+
+// Перетаскивание файла в окно — на случай, если диалог выбора неудобен.
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", (e) => {
+  e.preventDefault();
+  startWithFile(e.dataTransfer.files[0]);
+});
+
+el("silent").addEventListener("click", () => {
+  silentMode = true;
+  silentPaused = 0;
+  el("setup").style.display = "none";
+  setRunning(true);
+});
+
+el("play").addEventListener("click", () => setRunning(!running));
+el("restart").addEventListener("click", () => { seek(0); setRunning(true); });
+el("full").addEventListener("click", () => {
+  document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+});
+
+audio.addEventListener("play", () => { running = true; el("play").textContent = "Пауза"; });
+audio.addEventListener("pause", () => { running = false; el("play").textContent = "Пуск"; });
+
+document.addEventListener("keydown", (e) => {
+  if (el("setup").style.display !== "none") return;
+  if (e.code === "Space") { e.preventDefault(); setRunning(!running); }
+  if (e.code === "ArrowLeft") seek(now() - 5);
+  if (e.code === "ArrowRight") seek(now() + 5);
+  if (e.key === "r" || e.key === "R") { seek(0); setRunning(true); }
+  if (e.key === "f" || e.key === "F") el("full").click();
+});
+
+loop();
+</script>
+</body>
+</html>

@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Лоэн — движение в 3D</title>
+<style>
+  :root { --bg:#0b0d12; --panel:#141822; --line:#232936; --ink:#eef1f6;
+          --dim:#8b94a7; --gold:#d9a53b; --hot:#e8563f; --cold:#6fb3d9; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body { background:var(--bg); color:var(--ink); overflow:hidden;
+         font-family:"Segoe UI",system-ui,sans-serif; display:flex; flex-direction:column; }
+
+  #setup { position:fixed; inset:0; z-index:10; background:var(--bg); display:flex;
+           flex-direction:column; align-items:center; justify-content:center;
+           gap:1.3rem; padding:2rem; text-align:center; }
+  #setup h1 { font-size:clamp(1.4rem,4vw,2.3rem); font-weight:600; }
+  #setup p { color:var(--dim); max-width:36rem; line-height:1.6; }
+  .btn { background:var(--panel); color:var(--ink); border:1px solid var(--line);
+         border-radius:.5rem; padding:.85rem 1.5rem; font-size:1.02rem; cursor:pointer;
+         font-family:inherit; }
+  .btn:hover { border-color:var(--gold); }
+  .btn-main { background:var(--gold); color:#1a1206; border-color:var(--gold); font-weight:600; }
+  .row { display:flex; gap:.7rem; flex-wrap:wrap; justify-content:center; }
+  .hint { font-size:.85rem; color:var(--dim); }
+  .warn { color:var(--gold); font-size:.9rem; max-width:36rem; line-height:1.5; }
+
+  header { display:flex; align-items:baseline; gap:1.2rem; padding:.7rem 1.2rem;
+           border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  #clock { font-size:clamp(1.3rem,3vw,2rem); font-variant-numeric:tabular-nums; font-weight:600; }
+  #scene { color:var(--gold); text-transform:uppercase; letter-spacing:.04em;
+           font-size:clamp(.8rem,1.6vw,1rem); }
+  #cd { margin-left:auto; font-variant-numeric:tabular-nums; color:var(--dim); }
+  #cd b { color:var(--ink); font-size:1.3em; }
+  #ctl { display:flex; gap:.4rem; }
+  #ctl button { background:none; border:1px solid var(--line); color:var(--dim);
+                border-radius:.35rem; padding:.3rem .65rem; cursor:pointer; font-family:inherit; }
+  #ctl button:hover { color:var(--ink); border-color:var(--gold); }
+
+  #stage { flex:1; position:relative; min-height:0; }
+  canvas { display:block; width:100%; height:100%; cursor:grab; }
+  canvas:active { cursor:grabbing; }
+  #caption { position:absolute; left:0; right:0; bottom:0; padding:.9rem 1.2rem;
+             background:linear-gradient(transparent,#0b0d12ee 40%); pointer-events:none; }
+  #action { font-size:clamp(1rem,2.1vw,1.5rem); line-height:1.35; }
+  #action .em { color:var(--gold); }
+  #views { position:absolute; top:.7rem; right:.7rem; display:flex; gap:.4rem; }
+  #views button { background:#141822cc; border:1px solid var(--line); color:var(--dim);
+                  border-radius:.35rem; padding:.3rem .6rem; cursor:pointer;
+                  font-size:.85rem; font-family:inherit; }
+  #views button:hover, #views button.on { color:var(--gold); border-color:var(--gold); }
+
+  #bar { height:5px; background:var(--panel); }
+  #fill { height:100%; background:var(--gold); width:0; }
+  #err { display:none; position:fixed; bottom:0; left:0; right:0; z-index:20;
+         background:#3a1512; color:#ffd9d3; padding:.8rem 1.2rem; font-size:.9rem;
+         border-top:1px solid var(--hot); }
+</style>
+</head>
+<body>
+
+<div id="setup">
+  <h1>Движение номера в 3D</h1>
+  <p>Схематичная фигура проходит номер по тем же таймкодам, что и дорожка.
+     Камеру можно вращать мышью, колесо — приближение.</p>
+  <p class="warn">
+    Это не постановка. В ТЗ движения описаны словами, углов в суставах там нет,
+    поэтому позы — моё прочтение. Смотрите на <b>тайминг и направление</b>,
+    а не на технику: как выглядит настоящий взмах, вы знаете лучше меня.
+  </p>
+  <div class="row">
+    <button class="btn btn-main" id="pick">Выбрать master_v2.mp3</button>
+    <button class="btn" id="silent">Смотреть без звука</button>
+  </div>
+  <input id="file" type="file" accept="audio/*" style="position:absolute;left:-9999px">
+  <p class="hint">Пробел — пуск и пауза · ← → — пять секунд · R — с начала · 1–4 — ракурсы</p>
+  <p id="jsCheck" style="color:var(--hot);font-size:.9rem">
+    Скрипт не выполняется. Откройте файл двойным щелчком в браузере,
+    а не в окне предпросмотра.
+  </p>
+</div>
+
+<div id="err"></div>
+
+<header>
+  <div id="clock">00:00.0</div>
+  <div id="scene">—</div>
+  <div id="cd">до следующего <b>—</b></div>
+  <div id="ctl">
+    <button id="play">Пуск</button>
+    <button id="restart">С начала</button>
+    <button id="full">Экран</button>
+  </div>
+</header>
+
+<div id="stage">
+  <canvas id="cv"></canvas>
+  <div id="views">
+    <button data-v="0">Зритель</button>
+    <button data-v="1">3/4</button>
+    <button data-v="2">Сбоку</button>
+    <button data-v="3">Сверху</button>
+  </div>
+  <div id="caption"><div id="action">—</div></div>
+</div>
+
+<div id="bar"><div id="fill"></div></div>
+<audio id="audio" preload="auto"></audio>
+
+<script>
+const el = (id) => document.getElementById(id);
+function fail(m) { const b = el("err"); if (b) { b.style.display = "block"; b.textContent = "Ошибка: " + m; } }
+window.addEventListener("error", (e) => fail(e.message));
+window.addEventListener("unhandledrejection", (e) => fail(String(e.reason)));
+el("jsCheck").remove();
+
+const TOTAL = 103.0;
+const audio = el("audio");
+
+/* ============================================================
+   ПОЗЫ
+   Координаты в системе фигуры: начало в центре бёдер, y вверх,
+   x вправо, z вперёд по направлению взгляда. Метры.
+   Руки и ступни задаются точками — локоть и колено считаются сами.
+   Копьё — прямая через обе кисти, поэтому взмах это просто
+   перемещение рук.
+   ============================================================ */
+const BASE = {
+  rootY: 0.95, rootX: 0, rootZ: 0,
+  yaw: 0, lean: 0, twist: 0,
+  headYaw: 0, headPitch: 0,
+  lHand: [-0.26, 0.30, 0.12], rHand: [0.26, 0.30, 0.12],
+  lFoot: [-0.17, -0.95, 0.00], rFoot: [0.17, -0.95, 0.02],
+  spear: 0, chair: 0,
+};
+
+const SIT = {
+  rootY: 0.58, chair: 1,
+  lFoot: [-0.19, -0.58, 0.42], rFoot: [0.19, -0.58, 0.44],
+  lHand: [-0.22, -0.02, -0.22], rHand: [0.22, -0.02, -0.22],
+  lean: 6, headPitch: 38,
+};
+
+// K(время, изменения относительно базовой позы, сглаживание)
+// ease: 'both' плавно, 'in' с ускорением к концу (удар), 'out' резкий старт
+const K = (t, o = {}, ease = "both") => ({ t, ease, pose: { ...BASE, ...o } });
+
+const KEYS = [
+  // --- 00:00–00:08 появление лота -------------------------------
+  K(0.0,  { ...SIT }),
+  K(2.0,  { ...SIT }),
+  K(3.6,  { ...SIT, headPitch: 14, lean: 4 }),           // медленно поднимает голову
+  K(4.6,  { ...SIT, headPitch: 2,  lean: 3 }),           // взгляд на зрителей
+  K(19.0, { ...SIT, headPitch: 0,  lean: 2 }),
+
+  // --- 00:20 подозрение покупателя, голос слева -----------------
+  K(20.8, { ...SIT, headYaw: -34, twist: 6 }),
+  K(28.0, { ...SIT, headYaw: -28, twist: 5 }),
+
+  // --- 00:29 ответ Лоэна ----------------------------------------
+  K(29.6, { ...SIT, headYaw: -6 }),
+  K(31.0, { ...SIT, headYaw: -4, headPitch: 20 }),       // пауза после "think"
+  K(33.4, { ...SIT, headYaw: 0,  headPitch: 6 }),
+  K(34.4, { ...SIT, headYaw: 8,  headPitch: 14 }),       // наклон головы на "notice"
+  K(39.0, { ...SIT, headYaw: 4,  headPitch: 8 }),
+
+  // --- 00:39.3 щелчок оков, внешне ничего --------------------------
+  K(41.0, { ...SIT, headPitch: 6 }),
+
+  // --- 00:41.2 три удара молотка, на третьем встаёт ---------------
+  K(42.0, { ...SIT, headPitch: 0 }),
+  K(43.2, { rootY: 0.72, lean: 22, headPitch: 6, chair: 1,
+            lFoot: [-0.19, -0.72, 0.20], rFoot: [0.19, -0.72, 0.24],
+            lHand: [-0.24, -0.05, -0.16], rHand: [0.24, -0.05, -0.16] }, "out"),
+  K(45.4, { rootY: 0.95, lean: 4,
+            lHand: [-0.25, 0.05, -0.10], rHand: [0.25, 0.05, -0.10] }),
+  K(47.6, { lHand: [-0.26, 0.10, -0.06], rHand: [0.26, 0.10, -0.06] }),
+
+  // --- 00:48 раскрытие ловушки -----------------------------------
+  K(49.4, { lHand: [-0.26, 0.12, -0.04], rHand: [0.26, 0.12, -0.04] }),
+  K(50.6, { lHand: [-0.30, 0.22, 0.26], rHand: [0.30, 0.22, 0.26] }),   // руки вперёд
+  K(51.6, { lean: 3, lHand: [-0.22, 0.34, 0.34], rHand: [0.30, 0.16, 0.06] }),
+  // 00:52.7 копьё в руках, боевая стойка
+  K(52.7, { spear: 1, lean: 8, yaw: -12,
+            lFoot: [-0.28, -0.95, 0.16], rFoot: [0.24, -0.95, -0.20],
+            lHand: [-0.16, 0.30, 0.40], rHand: [0.30, 0.10, -0.06] }, "out"),
+  K(56.0, { spear: 1, lean: 8, yaw: -12,
+            lFoot: [-0.28, -0.95, 0.16], rFoot: [0.24, -0.95, -0.20],
+            lHand: [-0.16, 0.30, 0.40], rHand: [0.30, 0.10, -0.06] }),
+
+  // --- 00:56.8 толпа ахнула, начало боя --------------------------
+  K(57.4, { spear: 1, lean: 12, yaw: -8,
+            lHand: [-0.10, 0.38, 0.44], rHand: [0.26, 0.16, -0.02] }),
+
+  // --- связка 1: 00:58.5 взмах слева, 00:58.85 удар древком справа
+  K(58.2, { spear: 1, lean: -4, yaw: 16, twist: -14,
+            lHand: [-0.34, 0.30, -0.10], rHand: [-0.10, 0.12, -0.34] }, "out"),
+  K(58.5, { spear: 1, lean: 14, yaw: -18, twist: 12,
+            lFoot: [-0.36, -0.95, 0.34], rFoot: [0.22, -0.95, -0.26],
+            lHand: [-0.02, 0.36, 0.62], rHand: [0.22, 0.22, 0.14] }, "in"),
+  K(58.85,{ spear: 1, lean: 10, yaw: 22, twist: 18,
+            lFoot: [-0.30, -0.95, 0.24], rFoot: [0.26, -0.95, -0.18],
+            lHand: [0.30, 0.44, 0.30], rHand: [0.06, 0.20, -0.12] }, "in"),
+  K(59.4, { spear: 1, lean: 8, yaw: -6,
+            lHand: [-0.16, 0.32, 0.40], rHand: [0.30, 0.12, -0.04] }),
+
+  // --- связка 2: 01:01.2 широкий двуручный взмах, 01:01.85 по броне
+  K(60.8, { spear: 1, lean: -8, yaw: 28, twist: -22,
+            lHand: [-0.38, 0.52, -0.14], rHand: [-0.14, 0.36, -0.40] }, "out"),
+  K(61.2, { spear: 1, lean: 16, yaw: -26, twist: 20,
+            lFoot: [-0.40, -0.95, 0.30], rFoot: [0.26, -0.95, -0.30],
+            lHand: [0.06, 0.30, 0.66], rHand: [0.26, 0.34, 0.10] }, "in"),
+  K(61.85,{ spear: 1, lean: 22, yaw: -6, twist: 6,
+            lFoot: [-0.42, -0.95, 0.26], rFoot: [0.28, -0.95, -0.28],
+            lHand: [0.02, 0.02, 0.62], rHand: [0.24, 0.20, 0.06] }, "in"),
+  K(62.6, { spear: 1, lean: 8, yaw: -10,
+            lHand: [-0.16, 0.30, 0.40], rHand: [0.30, 0.12, -0.04] }),
+
+  // --- 01:04.2 выстрел справа, 01:04.35 уклонение ----------------
+  K(64.0, { spear: 1, lean: 6, yaw: 8, headYaw: 30,
+            lHand: [-0.14, 0.34, 0.36], rHand: [0.30, 0.14, -0.02] }, "out"),
+  K(64.35,{ spear: 1, lean: 18, twist: -26, yaw: -4, headYaw: 22,
+            rootX: -0.30, rootY: 0.80,
+            lFoot: [-0.48, -0.80, 0.10], rFoot: [0.16, -0.80, -0.16],
+            lHand: [-0.30, 0.26, 0.34], rHand: [0.22, 0.06, -0.10] }, "in"),
+  K(65.4, { spear: 1, lean: 10, rootX: -0.12, yaw: -8,
+            lHand: [-0.18, 0.30, 0.38], rHand: [0.30, 0.12, -0.04] }),
+
+  // --- связка 3: 01:07.0 ответный справа, 01:07.3 древком слева ---
+  K(66.8, { spear: 1, lean: -2, yaw: -22, twist: 16,
+            lHand: [0.10, 0.40, 0.10], rHand: [0.34, 0.24, -0.24] }, "out"),
+  K(67.0, { spear: 1, lean: 14, yaw: 20, twist: -14,
+            lFoot: [-0.26, -0.95, -0.18], rFoot: [0.34, -0.95, 0.30],
+            lHand: [0.16, 0.34, 0.56], rHand: [0.30, 0.24, 0.02] }, "in"),
+  K(67.3, { spear: 1, lean: 10, yaw: -24, twist: 16,
+            lHand: [-0.30, 0.40, 0.28], rHand: [-0.02, 0.18, -0.14] }, "in"),
+  K(67.9, { spear: 1, lean: 8, yaw: -10,
+            lHand: [-0.16, 0.30, 0.40], rHand: [0.30, 0.12, -0.04] }),
+
+  // --- связка 4: 01:10.0 центральный взмах, 01:10.65 сильное попадание
+  K(69.6, { spear: 1, lean: -10, twist: -8,
+            lHand: [-0.20, 0.62, -0.06], rHand: [0.16, 0.50, -0.30] }, "out"),
+  K(70.0, { spear: 1, lean: 18, yaw: -4,
+            lFoot: [-0.34, -0.95, 0.34], rFoot: [0.30, -0.95, -0.24],
+            lHand: [-0.06, 0.24, 0.64], rHand: [0.18, 0.40, 0.16] }, "in"),
+  K(70.65,{ spear: 1, lean: 26, yaw: -2,
+            lFoot: [-0.36, -0.95, 0.30], rFoot: [0.32, -0.95, -0.26],
+            lHand: [-0.04, -0.08, 0.60], rHand: [0.16, 0.16, 0.10] }, "in"),
+  K(71.5, { spear: 1, lean: 8, yaw: -8,
+            lHand: [-0.16, 0.30, 0.40], rHand: [0.30, 0.12, -0.04] }),
+
+  // --- 01:12 толпа бежит, держит стойку --------------------------
+  K(74.6, { spear: 1, lean: 8, yaw: -14,
+            lHand: [-0.16, 0.30, 0.40], rHand: [0.30, 0.12, -0.04] }),
+
+  // --- связка 5: 01:15.2 взмах, 01:15.55 древком ------------------
+  K(75.0, { spear: 1, lean: -2, yaw: 14, twist: -12,
+            lHand: [-0.32, 0.34, -0.08], rHand: [-0.08, 0.16, -0.32] }, "out"),
+  K(75.2, { spear: 1, lean: 14, yaw: -16, twist: 12,
+            lHand: [-0.02, 0.34, 0.60], rHand: [0.22, 0.22, 0.12] }, "in"),
+  K(75.55,{ spear: 1, lean: 10, yaw: 18, twist: 16,
+            lHand: [0.28, 0.42, 0.28], rHand: [0.04, 0.18, -0.12] }, "in"),
+  K(76.2, { spear: 1, lean: 8, yaw: -8,
+            lHand: [-0.16, 0.30, 0.40], rHand: [0.30, 0.12, -0.04] }),
+
+  // --- связка 6: 01:18.0 последний взмах, 01:18.65 последнее попадание
+  K(77.7, { spear: 1, lean: -12, twist: -20, yaw: 24,
+            lHand: [-0.40, 0.58, -0.12], rHand: [-0.16, 0.42, -0.42] }, "out"),
+  K(78.0, { spear: 1, lean: 18, yaw: -28, twist: 22,
+            lFoot: [-0.44, -0.95, 0.32], rFoot: [0.28, -0.95, -0.32],
+            lHand: [0.08, 0.28, 0.68], rHand: [0.28, 0.34, 0.12] }, "in"),
+  K(78.65,{ spear: 1, lean: 28, yaw: -8, twist: 4,
+            lFoot: [-0.46, -0.95, 0.28], rFoot: [0.30, -0.95, -0.30],
+            lHand: [0.04, -0.04, 0.64], rHand: [0.26, 0.18, 0.08] }, "in"),
+  K(79.4, { spear: 1, lean: 12, yaw: -6,
+            lHand: [-0.14, 0.28, 0.42], rHand: [0.30, 0.12, -0.02] }),
+
+  // --- 01:20 затишье: медленный поворот, копьё в сторону ---------
+  K(81.0, { spear: 1, lean: 4, yaw: 26, headYaw: 10,
+            lFoot: [-0.22, -0.95, 0.08], rFoot: [0.20, -0.95, -0.10],
+            lHand: [-0.06, 0.36, 0.44], rHand: [0.22, 0.26, -0.02] }),
+  K(88.0, { spear: 1, lean: 3, yaw: 26, headYaw: 8,
+            lHand: [-0.06, 0.36, 0.46], rHand: [0.22, 0.26, -0.02] }),
+
+  // --- 01:29 ледяная сцена --------------------------------------
+  K(89.6, { spear: 1, lean: 2, yaw: 18, headYaw: 4, headPitch: 6,
+            lHand: [-0.08, 0.34, 0.42], rHand: [0.22, 0.24, -0.02] }),
+  K(93.0, { spear: 1, lean: 2, yaw: 12,
+            lHand: [-0.08, 0.34, 0.42], rHand: [0.22, 0.24, -0.02] }),
+
+  // --- 01:35 замах, 01:37 пауза, 01:37.5 удар --------------------
+  // Замах: острие уходит вверх и назад, чтобы удар пошёл по дуге вниз-вперёд.
+  K(96.4, { spear: 1, lean: -12, yaw: 4, twist: -6,
+            lFoot: [-0.24, -0.95, -0.06], rFoot: [0.22, -0.95, 0.14],
+            lHand: [-0.10, 0.58, -0.14], rHand: [0.14, 0.28, 0.18] }, "both"),
+  K(97.3, { spear: 1, lean: -14, yaw: 4, twist: -8,
+            lHand: [-0.10, 0.62, -0.17], rHand: [0.14, 0.29, 0.19] }),
+  // Удар: наконечник останавливается чуть выше пола, а не проходит сквозь него.
+  K(97.62,{ spear: 1, lean: 32, yaw: 2, rootY: 0.72,
+            lFoot: [-0.36, -0.72, 0.32], rFoot: [0.32, -0.72, -0.26],
+            lHand: [0.00, 0.00, 0.50], rHand: [0.16, 0.26, 0.02] }, "in"),
+  K(98.4, { spear: 1, lean: 30, yaw: 2, rootY: 0.72,
+            lFoot: [-0.36, -0.72, 0.32], rFoot: [0.32, -0.72, -0.26],
+            lHand: [0.00, 0.01, 0.50], rHand: [0.16, 0.27, 0.02] }),
+  K(103.0,{ spear: 1, lean: 30, yaw: 2, rootY: 0.72,
+            lFoot: [-0.36, -0.72, 0.32], rFoot: [0.32, -0.72, -0.26],
+            lHand: [0.00, 0.01, 0.50], rHand: [0.16, 0.27, 0.02] }),
+];
+
+/* ---- подписи: что делать, берутся по времени -------------------- */
+const CAPS = [
+  [0,    "Появление лота",       'Сидите. Голова опущена, руки за спиной. Почти не двигайтесь.'],
+  [2.0,  "Появление лота",       'На словах <span class="em">«final lot»</span> медленно поднимаете голову.'],
+  [4.2,  "Представление лота",   'Взгляд на зрителей. Улыбка появляется не сразу.'],
+  [20.0, "Подозрение",           'Взгляд <span class="em">влево</span>, на голос. Только глаза и голова.'],
+  [29.0, "Ответ Лоэна",          'На паузе после «think» взгляд вниз. На «notice» наклон головы.'],
+  [39.3, "Щелчок оков",          'Руки свободны — но внешне ничего не меняется.'],
+  [40.0, "Продажа",              'Ждёте. Не двигаетесь.'],
+  [41.2, "Три удара молотка",    'Раз — два — <span class="em">три</span>. На третьем начинаете вставать.'],
+  [42.0, "Подъём",               'Медленно встаёте. Не переходите в бой.'],
+  [48.0, "Раскрытие",            '«You misunderstand» — спокойно.'],
+  [49.6, "Раскрытие",            '<span class="em">Освобождаете руки.</span> Полторы секунды.'],
+  [51.0, "Раскрытие",            'На «never» видно, что вы не пленник. На «merchandise» — оружие.'],
+  [52.7, "Боевая стойка",        'Копьё в руках. Стойка держится.'],
+  [56.8, "Начало боя",           'Толпа осознала. Начинаете движение.'],
+  [58.2, "Связка 1",             'Замах → выпад <span class="em">слева</span> → удар древком <span class="em">справа</span>.'],
+  [60.8, "Связка 2",             'Широкий двуручный взмах → сильное попадание по броне.'],
+  [64.0, "Выстрел",              'Выстрел <span class="em">справа</span>. Уклоняетесь влево, уходите с линии.'],
+  [66.8, "Связка 3",             'Ответный <span class="em">справа</span> → короткий удар древком <span class="em">слева</span>.'],
+  [69.6, "Связка 4",             'Сильный центральный взмах → самое сильное попадание.'],
+  [72.0, "Толпа бежит",          'Держите стойку. На толпу не смотрите.'],
+  [75.0, "Связка 5",             'Быстрый взмах → удар древком.'],
+  [77.7, "Связка 6",             '<span class="em">Последний</span> взмах и последнее попадание.'],
+  [80.0, "Затишье",              'Медленно поворачиваетесь. Копьё в сторону противника.'],
+  [81.1, "Затишье",              'Держите. Тишина работает на вас.'],
+  [88.9, "Переход ко льду",      'Стало холодно — это должно быть видно.'],
+  [89.0, "Ледяная сцена",        '«How disappointing» — холодное разочарование.'],
+  [90.6, "Ледяная сцена",        'Держите позу. Лёд расходится по залу.'],
+  [95.0, "Замах",                'Начинаете замах. <span class="em">Коротко.</span>'],
+  [97.0, "Пауза",                'Замерли перед ударом.'],
+  [97.5, "Финальный удар",       '<span class="em">Резкий удар копьём.</span> Сразу замираете.'],
+  [97.8, "Финальная поза",       'Держите <span class="em">3–4 секунды</span>. Затем затемнение.'],
+  [103,  "Конец",                'Номер закончен.'],
+];
+
+/* ============================ анимация ============================ */
+const smooth = (u) => u * u * (3 - 2 * u);
+const easeIn  = (u) => u * u;
+const easeOut = (u) => 1 - (1 - u) * (1 - u);
+
+function shape(u, mode) {
+  if (mode === "in") return easeIn(u);
+  if (mode === "out") return easeOut(u);
+  if (mode === "linear") return u;
+  return smooth(u);
+}
+
+function poseAt(t) {
+  if (t <= KEYS[0].t) return KEYS[0].pose;
+  const last = KEYS[KEYS.length - 1];
+  if (t >= last.t) return last.pose;
+  let i = 0;
+  while (i < KEYS.length - 1 && KEYS[i + 1].t <= t) i++;
+  const a = KEYS[i], b = KEYS[i + 1];
+  const u = shape((t - a.t) / (b.t - a.t), b.ease);
+  const out = {};
+  for (const k in BASE) {
+    const va = a.pose[k], vb = b.pose[k];
+    out[k] = Array.isArray(va)
+      ? va.map((c, j) => c + (vb[j] - c) * u)
+      : va + (vb - va) * u;
+  }
+  return out;
+}
+
+/* ======================= скелет из позы ======================== */
+const rad = (d) => d * Math.PI / 180;
+const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const mul = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+const len = (a) => Math.hypot(a[0], a[1], a[2]);
+const norm = (a) => { const l = len(a) || 1; return mul(a, 1 / l); };
+const cross = (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+
+function rotY(p, d) { const c = Math.cos(rad(d)), s = Math.sin(rad(d));
+  return [p[0]*c + p[2]*s, p[1], -p[0]*s + p[2]*c]; }
+function rotX(p, d) { const c = Math.cos(rad(d)), s = Math.sin(rad(d));
+  return [p[0], p[1]*c - p[2]*s, p[1]*s + p[2]*c]; }
+
+// Средний сустав: середина между концами, отодвинутая в сторону —
+// так локоть и колено не выглядят прямой палкой.
+function midJoint(from, to, push) {
+  const m = mul(add(from, to), 0.5);
+  const dir = norm(sub(to, from));
+  let side = cross(dir, [0, 1, 0]);
+  if (len(side) < 0.05) side = [1, 0, 0];
+  const off = add(mul(norm(side), push[0]), [0, push[1], push[2]]);
+  return add(m, off);
+}
+
+function skeleton(p) {
+  const hip = [0, 0, 0];
+  const spine = rotX(rotY([0, 0.52, 0], p.twist), -p.lean);
+  const chest = add(hip, spine);
+  const neck  = add(chest, rotX([0, 0.10, 0], -p.lean));
+  const head  = add(neck, rotX([0, 0.20, 0], -p.lean * 0.6));
+  const shL = add(chest, rotX(rotY([-0.20, 0.02, 0], p.twist), -p.lean));
+  const shR = add(chest, rotX(rotY([ 0.20, 0.02, 0], p.twist), -p.lean));
+  const hipL = [-0.11, 0, 0], hipR = [0.11, 0, 0];
+
+  const elL = midJoint(shL, p.lHand, [-0.13, -0.06, 0]);
+  const elR = midJoint(shR, p.rHand, [ 0.13, -0.06, 0]);
+  const knL = midJoint(hipL, p.lFoot, [0, 0.02, 0.13]);
+  const knR = midJoint(hipR, p.rFoot, [0, 0.02, 0.13]);
+
+  // взгляд: короткий отрезок из головы, чтобы направление читалось
+  const gaze = add(head, rotX(rotY([0, 0, 0.26], p.headYaw), -p.headPitch));
+
+  let spear = null;
+  if (p.spear > 0.5) {
+    // Наконечник выходит за ПЕРЕДНЮЮ (левую) кисть, пятка — за заднюю правую.
+    // Если перевернуть, при выпаде острие уезжает за спину.
+    const d = norm(sub(p.lHand, p.rHand));
+    spear = [add(p.rHand, mul(d, -0.95)), add(p.lHand, mul(d, 1.30))];
+  }
+
+  const bones = [
+    [hip, chest], [chest, neck], [neck, head],
+    [chest, shL], [shL, elL], [elL, p.lHand],
+    [chest, shR], [shR, elR], [elR, p.rHand],
+    [hip, hipL], [hipL, knL], [knL, p.lFoot],
+    [hip, hipR], [hipR, knR], [knR, p.rFoot],
+  ];
+
+  // в мировые координаты: поворот на yaw и сдвиг корня
+  const place = (v) => add(rotY(v, p.yaw), [p.rootX, p.rootY, p.rootZ]);
+  return {
+    bones: bones.map(([a, b]) => [place(a), place(b)]),
+    head: place(head), gaze: place(gaze),
+    spear: spear ? spear.map(place) : null,
+    hands: [place(p.lHand), place(p.rHand)],
+    chair: p.chair,
+    root: [p.rootX, p.rootY, p.rootZ],
+  };
+}
+
+/* ========================== камера ============================ */
+const VIEWS = [
+  { az: 0,   el: 12, d: 4.6, name: "Зритель" },
+  { az: -36, el: 16, d: 4.8, name: "3/4" },
+  { az: -88, el: 10, d: 4.6, name: "Сбоку" },
+  { az: -20, el: 68, d: 5.4, name: "Сверху" },
+];
+let cam = { ...VIEWS[1] };
+const target = [0, 0.95, 0];
+
+const cv = el("cv"), ctx = cv.getContext("2d");
+let W = 0, H = 0, DPR = 1;
+
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener("resize", resize);
+
+function project(p) {
+  const ca = Math.cos(rad(cam.az)), sa = Math.sin(rad(cam.az));
+  const ce = Math.cos(rad(cam.el)), se = Math.sin(rad(cam.el));
+  const eye = [target[0] + cam.d * ce * sa, target[1] + cam.d * se, target[2] + cam.d * ce * ca];
+  const fwd = norm(sub(target, eye));
+  let right = norm(cross([0, 1, 0], fwd));
+  if (!isFinite(right[0])) right = [1, 0, 0];
+  const up = cross(fwd, right);
+  const v = sub(p, eye);
+  const z = v[0]*fwd[0] + v[1]*fwd[1] + v[2]*fwd[2];
+  if (z < 0.15) return null;
+  const x = v[0]*right[0] + v[1]*right[1] + v[2]*right[2];
+  const y = v[0]*up[0] + v[1]*up[1] + v[2]*up[2];
+  const f = Math.min(W, H) * 0.9;
+  return [W / 2 + f * x / z, H / 2 - f * y / z, z];
+}
+
+function line(a, b, color, width) {
+  const p = project(a), q = project(b);
+  if (!p || !q) return;
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke();
+}
+
+function drawFloor() {
+  const n = 8, s = 0.5;
+  for (let i = -n; i <= n; i++) {
+    const c = i === 0 ? "#2b3342" : "#1b2130";
+    line([i * s, 0, -n * s], [i * s, 0, n * s], c, 1);
+    line([-n * s, 0, i * s], [n * s, 0, i * s], c, 1);
+  }
+  // где зритель
+  const p = project([0, 0.02, n * s]);
+  if (p) {
+    ctx.fillStyle = "#7b8496";
+    ctx.font = "600 12px system-ui"; ctx.textAlign = "center";
+    ctx.fillText("ЗРИТЕЛЬ", p[0], p[1] + 14);
+  }
+}
+
+function drawChair(alpha) {
+  if (alpha < 0.02) return;
+  const c = `rgba(90,102,124,${alpha})`;
+  const y = 0.58, z = -0.02, w = 0.22;
+  line([-w, y, z - w], [w, y, z - w], c, 3);
+  line([-w, y, z + w], [w, y, z + w], c, 3);
+  line([-w, y, z - w], [-w, y, z + w], c, 3);
+  line([ w, y, z - w], [ w, y, z + w], c, 3);
+  for (const sx of [-w, w]) for (const sz of [z - w, z + w]) line([sx, 0, sz], [sx, y, sz], c, 3);
+  line([-w, y, z - w], [-w, y + 0.45, z - w], c, 3);
+  line([ w, y, z - w], [ w, y + 0.45, z - w], c, 3);
+  line([-w, y + 0.45, z - w], [w, y + 0.45, z - w], c, 3);
+}
+
+function drawFigure(sk) {
+  drawChair(sk.chair);
+  for (const [a, b] of sk.bones) line(a, b, "#dfe5ef", 7);
+  const h = project(sk.head);
+  if (h) {
+    const r = Math.max(4, 200 / h[2] * 0.11);
+    ctx.fillStyle = "#dfe5ef"; ctx.beginPath();
+    ctx.arc(h[0], h[1], r, 0, 6.2832); ctx.fill();
+  }
+  line(sk.head, sk.gaze, "#6fb3d9", 3);              // направление взгляда
+  if (sk.spear) {
+    line(sk.spear[0], sk.spear[1], "#d9a53b", 5);
+    const tip = project(sk.spear[1]);
+    if (tip) { ctx.fillStyle = "#f0c774"; ctx.beginPath();
+               ctx.arc(tip[0], tip[1], 5, 0, 6.2832); ctx.fill(); }
+  }
+}
+
+/* ======================= время и отрисовка ===================== */
+let silentMode = false, silentStart = 0, silentPaused = 0, running = false;
+const fmt = (t) => { if (t < 0) t = 0; const m = Math.floor(t / 60), s = t - m * 60;
+  return String(m).padStart(2, "0") + ":" + s.toFixed(1).padStart(4, "0"); };
+const now = () => silentMode ? (running ? (performance.now() - silentStart) / 1000 : silentPaused)
+                             : audio.currentTime;
+
+let capIdx = -1;
+function drawFrame() {
+  if (!W) resize();
+  const t = Math.min(now(), TOTAL);
+  ctx.clearRect(0, 0, W, H);
+  drawFloor();
+  drawFigure(skeleton(poseAt(t)));
+
+  el("clock").textContent = fmt(t);
+  el("fill").style.width = (t / TOTAL * 100) + "%";
+
+  let i = 0;
+  for (let j = 0; j < CAPS.length; j++) if (CAPS[j][0] <= t + 0.001) i = j;
+  if (i !== capIdx) {
+    capIdx = i;
+    el("scene").textContent = CAPS[i][1];
+    el("action").innerHTML = CAPS[i][2];
+  }
+  const nx = CAPS[i + 1];
+  el("cd").innerHTML = nx ? `до следующего <b>${(nx[0] - t).toFixed(1)}</b>` : "конец";
+}
+setInterval(drawFrame, 40);
+document.addEventListener("visibilitychange", drawFrame);
+
+/* ========================= управление ========================= */
+function setRunning(on) {
+  running = on;
+  el("play").textContent = on ? "Пауза" : "Пуск";
+  if (silentMode) {
+    if (on) silentStart = performance.now() - silentPaused * 1000;
+    else silentPaused = (performance.now() - silentStart) / 1000;
+  } else if (on) {
+    const p = audio.play();
+    if (p && p.catch) p.catch(() => fail("браузер не дал запустить звук, нажмите «Пуск»"));
+  } else audio.pause();
+}
+function seek(t) {
+  t = Math.max(0, Math.min(TOTAL, t));
+  if (silentMode) { silentPaused = t; if (running) silentStart = performance.now() - t * 1000; }
+  else audio.currentTime = t;
+  capIdx = -1;
+}
+function startWithFile(f) {
+  if (!f) return;
+  audio.src = URL.createObjectURL(f);
+  silentMode = false;
+  el("setup").style.display = "none";
+  resize(); setRunning(true);
+}
+el("pick").addEventListener("click", () => el("file").click());
+el("file").addEventListener("change", (e) => startWithFile(e.target.files[0]));
+el("silent").addEventListener("click", () => {
+  silentMode = true; silentPaused = 0;
+  el("setup").style.display = "none";
+  resize(); setRunning(true);
+});
+audio.addEventListener("error", () => fail("не удалось прочитать звуковой файл"));
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", (e) => { e.preventDefault(); startWithFile(e.dataTransfer.files[0]); });
+
+el("play").addEventListener("click", () => setRunning(!running));
+el("restart").addEventListener("click", () => { seek(0); setRunning(true); });
+el("full").addEventListener("click", () => document.fullscreenElement
+  ? document.exitFullscreen() : document.documentElement.requestFullscreen());
+
+function setView(i) {
+  cam = { ...VIEWS[i] };
+  [...document.querySelectorAll("#views button")].forEach((b, j) => b.classList.toggle("on", i === j));
+}
+document.querySelectorAll("#views button").forEach((b) =>
+  b.addEventListener("click", () => setView(+b.dataset.v)));
+setView(1);
+
+// вращение мышью и колесом
+let drag = null;
+cv.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY, az: cam.az, el: cam.el };
+  cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  cam.az = drag.az - (e.clientX - drag.x) * 0.4;
+  cam.el = Math.max(-15, Math.min(85, drag.el + (e.clientY - drag.y) * 0.3));
+});
+cv.addEventListener("pointerup", () => { drag = null; });
+cv.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  cam.d = Math.max(2, Math.min(12, cam.d + Math.sign(e.deltaY) * 0.35));
+}, { passive: false });
+
+document.addEventListener("keydown", (e) => {
+  if (el("setup").style.display !== "none") return;
+  if (e.code === "Space") { e.preventDefault(); setRunning(!running); }
+  if (e.code === "ArrowLeft") seek(now() - 5);
+  if (e.code === "ArrowRight") seek(now() + 5);
+  if (e.key === "r" || e.key === "R") { seek(0); setRunning(true); }
+  if (e.key >= "1" && e.key <= "4") setView(+e.key - 1);
+  if (e.key === "f" || e.key === "F") el("full").click();
+});
+
+resize();
+drawFrame();
+</script>
+</body>
+</html>
