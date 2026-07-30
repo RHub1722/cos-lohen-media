@@ -44,6 +44,13 @@ docs/status/YYYY-MM-DD-<версия сборки>.md
 | [rehearsal-cues.html](../rehearsal-cues.html) | что делать сейчас, что звучит, сколько до следующего действия |
 | [rehearsal-3d.html](../rehearsal-3d.html) | схематичная фигура проходит номер, четыре ракурса |
 
+## Сценарий
+
+| Документ | Состояние |
+|---|---|
+| [SCENARIO_V3_60S.md](../../scenario/SCENARIO_V3_60S.md) | **действующий**: 60.000 с, аукцион из звука трейлера, четыре блока |
+| [CLAUDE_HANDOFF_LOHEN_AUDIO_PROJECT.md](../../scenario/CLAUDE_HANDOFF_LOHEN_AUDIO_PROJECT.md) | ТЗ. Сценарная часть (§3, §4, часть §5) заменена, техническая действует |
+
 ## Справочные материалы
 
 | Документ | Что внутри |
